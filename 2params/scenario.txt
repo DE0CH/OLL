@@ -1,2 +1,2 @@
-maxExperiments = 5000   
+maxExperiments = 50000 
 trainInstancesDir = "../Instances"

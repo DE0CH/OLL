@@ -2,6 +2,7 @@ import subprocess
 import os
 
 sizes = [10, 100, 1000]
+output_f = open("output.txt", "w")
 
 for size in sizes:
     with open("Instances/1.txt", "w") as f:
@@ -13,12 +14,15 @@ for size in sizes:
     with open("scenario.txt", "w") as f:
         f.write(f"maxExperiments = {size * 100}")
     process = subprocess.Popen(["irace", "--parallel", "12"], stdout=subprocess.PIPE)
-    output_f = open("output.txt")
+
     while True:
         try:
-            line = next(process.stdout).decode("UTF-8")
+            line = next(process.stdout)
+            line = line.decode("UTF-8")
             print(line, end="")
             output_f.write(line)
         except StopIteration:
             break
-    output_f.close()
+    break
+
+output_f.close()

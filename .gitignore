@@ -92,3 +92,5 @@ docs/_build/
 
 **/irace.Rdata
 irace.Rdata
+iracedump.rda
+iracedump.rdaTmp

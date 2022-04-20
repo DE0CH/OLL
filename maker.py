@@ -12,9 +12,10 @@ def main():
         
         with open("parameters.txt", "w") as f:
             for i in range(size):
-                f.write(f"lbd{i} \"--lbd{1} \" i (1, {size-1}) \n")
+                f.write(f"lbd{i} \"--lbd{i} \" i (1, {size-1}) \n")
         with open("scenario.txt", "w") as f:
-            f.write(f"maxExperiments = {size * 100}")
+            f.write(f"maxExperiments = {size * 100}\n")
+            # f.write(f"debugLevel = 3 \n")
         process = subprocess.Popen(["irace", "--parallel", "12"], stdout=subprocess.PIPE)
 
         while True:

@@ -1,1 +1,1 @@
-maxExperiments = 1000
+maxExperiments = 100000

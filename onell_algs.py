@@ -494,8 +494,7 @@ def onell_lambda(n, problem=OneMax, seed=None,
         steps += 1
             
         if total_evals>=max_evals:
-            x, f_x, max_evals * 2
-            break  
+            return x, f_x, max_evals * 2
         
     return x, f_x, total_evals #, mtimes, ctimes        
 
@@ -576,11 +575,11 @@ def onell_lbd_one(n, problem=OneMax, seed=None,
     mtimes, ctimes = [], []
     steps = 1
     old_f_x = f_x
+    lbd = 1
     while not x.is_optimal():
         # mutation phase
         s = time.time()
         #lbd = np.sqrt(n / (n-f_x))        
-        lbd = 1
         p = lbd/n
         xprime, f_xprime, ne1 = x.mutate(p, int(lbd), rng)      
         mtimes.append(time.time()-s)     

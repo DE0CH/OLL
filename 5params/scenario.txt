@@ -1,2 +1,0 @@
-maxExperiments = 5000   
-trainInstancesDir = "../Instances"

@@ -441,7 +441,7 @@ def onell_dynamic_5params_old(n, problem=OneMax, seed=None,
     return x, f_x, total_evals #, mtimes, ctimes    
 
 def onell_lambda(n, problem=OneMax, seed=None,
-                    lbd = 1,
+                    lbds = None,
                     max_evals = 99999999,
                     count_different_inds_only=True,                    
                     include_xprime_crossover = True           
@@ -451,10 +451,19 @@ def onell_lambda(n, problem=OneMax, seed=None,
     lbd = sqrt(n*(n-f(x))), p = lbd/n, c=1/lbd    
 
     """
+    if not lbds:
+        lbds = [1] * n
+
+
+    assert len(lbds) == n
+
+    lbds.append(1) # Prevent Index out of range just before the optimal solution is detected. 
+
     rng = get_default_rng(seed)
 
-    x = problem(n, rng=rng)   
+    x: OneMax = problem(n, rng=rng)   
     f_x = x.fitness
+    lbd = lbds[f_x]
     
     total_evals = 1 # total number of solution evaluations    
 
@@ -479,22 +488,14 @@ def onell_lambda(n, problem=OneMax, seed=None,
         if f_x <= f_y:
             x = y
             f_x = f_y
+        lbd = lbds[f_x]
 
         total_evals = total_evals + ne1 + ne2
-
-        #print("%d: evals=%d; x=%d; xprime=%d; y=%d; obj=%d; p=%.2f; c=%.2f; lbd=%.2f" % (steps, total_evals, old_f_x,xprime.fitness, y.fitness, x.fitness, p, c, lbd))        
-        
-        #if steps==1:
-        #    print("steps,total_evals,old_f_x,p,c,lbd")
-        #print("%d,%d,%d,%.2f,%.2f,%.2f" % (steps, total_evals, old_f_x, p, c, lbd))        
-
         steps += 1
             
         if total_evals>=max_evals:
             x, f_x, max_evals * 2
             break  
-
-    #print(total_evals)
         
     return x, f_x, total_evals #, mtimes, ctimes        
 

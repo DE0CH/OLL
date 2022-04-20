@@ -1,2 +1,0 @@
-N=$*
-python3 target-runner.py $N

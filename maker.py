@@ -17,7 +17,7 @@ def main():
             for i in range(size):
                 f.write(f"lbd{i} \"--lbd{i} \" i (1, {size-1}) \n")
         with open("scenario.txt", "w") as f:
-            f.write(f"maxExperiments = {10**8 if not small else 2000}\n")
+            f.write(f"maxExperiments = {10**5 if not small else 2000}\n")
             f.write(f"boundMax = 99999999\n")
             f.write(f"boundPar = 2\n")
             f.write(f"testType = \"t-test\"\n")

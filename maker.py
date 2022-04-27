@@ -6,7 +6,7 @@ import sys
 output_f = open("output.txt", "w")
 
 def main():
-    sizes = [1000]
+    sizes = [100]
 
     for size in sizes:
         with open("Instances/1.txt", "w") as f:
@@ -16,7 +16,7 @@ def main():
             for i in range(size):
                 f.write(f"lbd{i} \"--lbd{i} \" i (1, {size-1}) \n")
         with open("scenario.txt", "w") as f:
-            f.write(f"maxExperiments = {size * 100}\n")
+            f.write(f"maxExperiments = {10**7}\n")
             # f.write(f"debugLevel = 3 \n")
         process = subprocess.Popen(["irace", "--parallel", "12"], stdout=subprocess.PIPE)
 

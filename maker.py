@@ -1,10 +1,12 @@
+#! /usr/bin/env python3
+
 import subprocess
 import os
 import sys
 output_f = open("output.txt", "w")
 
 def main():
-    sizes = [10, 100, 1000]
+    sizes = [1000]
 
     for size in sizes:
         with open("Instances/1.txt", "w") as f:

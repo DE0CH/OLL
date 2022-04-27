@@ -5,8 +5,11 @@ import numpy as np
 
 n = 1000
 seed = 1511431338 
-rng = np.random.default_rng(1511431338)
-random_lbd = rng.integers(low=1, high=n, size=n)
+
+rng: np.random.Generator = np.random.default_rng(1511431338)
+def next_seed():
+    rng.integers(low=10**10, high=10**11)
+random_lbd = list(rng.integers(low=1, high=n, size=n))
 dynamic_lbd = None
 with open('lbd_dynamic_optimal.txt') as f:
     for line in f:
@@ -18,14 +21,18 @@ static_lbd = [90]*n
 
 def main():
     print("Dynamic Lambda")
-    print(onell_lambda(lbd=dynamic_lbd, seed=))
+    print(onell_lambda(n, lbds=dynamic_lbd, seed=next_seed()))
     print("Static Lambda")
+    print(onell_lambda(n, lbds=static_lbd, seed=next_seed()))
     print("Random Lambda")
-    print(onell_lambda(random_lbd))
+    print(onell_lambda(n, lbds=random_lbd, seed=next_seed()))
     print("Lambda = 1")
+    print(onell_lambda(n, lbds=[1]*n, seed=next_seed()))
     print("Dynamic Theory")
-    print(onell_dynamic_theory(n))
+    print(onell_dynamic_theory(n, seed=next_seed()))
     print("5 Parameters")
+    print(onell_dynamic_5params(n, seed=next_seed()))
+
     
 
 

@@ -496,7 +496,8 @@ def onell_lambda(n, problem=OneMax, seed=None,
         steps += 1
             
         if total_evals>=max_evals:
-            return x, f_x, max_evals * 2
+            max_evals *= 2
+            break
         
     return x, f_x, total_evals #, mtimes, ctimes        
 

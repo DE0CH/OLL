@@ -23,12 +23,9 @@ dynamic_lbd = None
 trials = 500
 threads = 24
 random_lbd_set = [list(rng.integers(low=1, high=n, size=n)) for _ in range(trials)]
+with open('dynamic_lbd_optimal.txt') as f:
+    dynamic_lbd = list(map(int, f.read().split()))
 
-with open('lbd_dynamic_optimal.txt') as f:
-    for line in f:
-        if line.strip():
-            dynamic_lbd = list(map(int, line.split()))[1:]
-            break
 assert dynamic_lbd is not None
 static_lbd = [5]*n
 
@@ -45,11 +42,13 @@ def onell_eval(f, n, lbds, seed):
 def main():
     with Pool(threads) as p:
         static_lbd_performace = p.starmap(onell_eval, zip([onell_lambda]*trials, [n]*trials, [static_lbd]*trials, next_seeds(trials)))
+        dynamic_lbd_performace = p.starmap(onell_eval, zip([onell_lambda]*trials, [n]*trials, [dynamic_lbd]*trials, next_seeds(trials)))
         random_lbd_performace = p.starmap(onell_eval, zip([onell_lambda]*trials, [n]*trials, random_lbd_set, next_seeds(trials)))
+        random_lbd_same_performace = p.starmap(onell_eval, zip([onell_lambda]*trials, [n]*trials, [random_lbd]*trials, next_seeds(trials)))
         one_lbd_performace = p.starmap(onell_eval, zip([onell_lambda]*trials, [n]*trials, [[1]*n]*trials, next_seeds(trials)))
         dynamic_theory_performace = p.starmap(onell_eval, zip([onell_dynamic_theory]*trials, [n]*trials, [None]*trials, next_seeds(trials)))
         five_param_performace = p.starmap(onell_eval, zip([onell_dynamic_5params]*trials, [n]*trials, [None]*trials, next_seeds(trials)))
-    plt.boxplot((static_lbd_performace, random_lbd_performace, one_lbd_performace, dynamic_theory_performace, five_param_performace), labels=(f"Static Lambda (lbd={5})", "Random Lambda", "Lambda = 1", "Dynamic Theory", "Five Parameters"))
+    plt.boxplot((static_lbd_performace, dynamic_lbd_performace, random_lbd_performace, random_lbd_same_performace, one_lbd_performace, dynamic_theory_performace, five_param_performace), labels=(f"Static Lambda (lbd={5})", "Dynamic Lambda", "Random Lambda (Lambda changes)", "Random Lambda (Lambda fixed)", "Lambda = 1", "Dynamic Theory", "Five Parameters"))
     plt.show()
     return 
     # print("Dynamic Lambda")

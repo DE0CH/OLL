@@ -1,1 +1,2 @@
-maxExperiments = 100000
+maxExperiments = 100000000
+boundMax = 99999999

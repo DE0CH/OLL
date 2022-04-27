@@ -452,10 +452,11 @@ def onell_lambda(n, problem=OneMax, seed=None,
     lbd = sqrt(n*(n-f(x))), p = lbd/n, c=1/lbd    
 
     """
+
     if not lbds:
         lbds = [1] * n
-
-
+    else: 
+        lbds = lbds.copy()
     assert len(lbds) == n
 
     lbds.append(1) # Prevent Index out of range just before the optimal solution is detected. 

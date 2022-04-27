@@ -1,7 +1,8 @@
-from more_itertools import one
-from onell_algs import onell_lambda
-import numpy as np
+from multiprocessing import Pool
 
-rng = np.random.default_rng(12345)
-print(rng.random())
-print(rng.random())
+def f(x, y):
+    return x*y
+
+if __name__ == '__main__':
+    with Pool(5) as p:
+        print(p.starmap(f, zip([1, 2, 3], [1, 2, 4])))

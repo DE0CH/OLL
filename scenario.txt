@@ -1,1 +1,2 @@
-maxExperiments = 100000
+maxExperiments = 10000
+targetRunner = "./target_runner_static.py"

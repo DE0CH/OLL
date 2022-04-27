@@ -370,7 +370,8 @@ def onell_dynamic_5params(n, problem=OneMax, seed=None,
         #print("%d: evals=%d; x=%d; xprime=%d; y=%d; obj=%d; p=%.2f; c=%.2f; lbd=%.2f" % (steps, total_evals, old_f_x,xprime.fitness, y.fitness, x.fitness, p, c, lbd)) 
             
         if total_evals>=max_evals:
-            break  
+            total_evals *= 2
+            break
 
     #print(total_evals)
         
@@ -444,7 +445,7 @@ def onell_lambda(n, problem=OneMax, seed=None,
                     lbds = None,
                     max_evals = 99999999,
                     count_different_inds_only=True,                    
-                    include_xprime_crossover = True           
+                    include_xprime_crossover = True,
                 ):
     """
     (1+LL)-GA, dynamic version with theoretical results
@@ -549,6 +550,7 @@ def onell_dynamic_theory(n, problem=OneMax, seed=None,
         steps += 1
             
         if total_evals>=max_evals:
+            total_evals *= 2
             break  
 
     #print(total_evals)

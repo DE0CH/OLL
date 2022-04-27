@@ -94,3 +94,5 @@ docs/_build/
 irace.Rdata
 iracedump.rda
 iracedump.rdaTmp
+output.txt
+output_static.txt

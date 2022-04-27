@@ -4,7 +4,7 @@ from onell_algs import onell_lambda
 
 seed = int(sys.argv[3])
 instance = sys.argv[4]
-bound = sys.argv[5]
+bound = int(sys.argv[5])
 with open(instance) as f:
     n = int(f.read())
 

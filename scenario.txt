@@ -1,2 +1,3 @@
 maxExperiments = 100000000
 boundMax = 99999999
+boundPar = 2

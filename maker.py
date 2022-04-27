@@ -17,7 +17,8 @@ def main():
                 f.write(f"lbd{i} \"--lbd{i} \" i (1, {size-1}) \n")
         with open("scenario.txt", "w") as f:
             f.write(f"maxExperiments = {10**8}\n")
-            f.write(f"boundMax = 99999999")
+            f.write(f"boundMax = 99999999\n")
+            f.write(f"boundPar = 2\n")
             # f.write(f"debugLevel = 3 \n")
         process = subprocess.Popen(["irace", "--parallel", "12", "--capping", "1"], stdout=subprocess.PIPE)
 

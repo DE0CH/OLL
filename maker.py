@@ -3,11 +3,14 @@
 import subprocess
 import os
 import sys
+import pathlib
+
 output_f = open("output.txt", "w")
+pathlib.Path("Instances").mkdir(parents=True, exist_ok=True)
 small = False
 
 def main():
-    sizes = [10, 50, 100]
+    sizes = [10, 50, 100]   
 
     for size in sizes:
         with open("Instances/1.txt", "w") as f:
@@ -16,7 +19,7 @@ def main():
         with open("parameters.txt", "w") as f:
             for i in range(size):
                 f.write(f"lbd{i} \"--lbd{i} \" i (1, {size-1}) \n")
-        with open("scenario.txt", "w") as f:
+        with open("scenario.txt", "w+") as f:
             f.write(f"maxExperiments = {size * 10**4 if not small else 2000}\n")
             f.write(f"boundMax = 99999999\n")
             f.write(f"boundPar = 2\n")

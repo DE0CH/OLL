@@ -98,3 +98,4 @@ output.txt
 output_static.txt
 __pycache__
 **/__pycache__
+venv

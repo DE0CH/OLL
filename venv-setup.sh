@@ -8,7 +8,19 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 
-[[ $ZSH_EVAL_CONTEXT =~ :file$ ]] || (echo "Run this as source" && exit 1)
+perr () {
+    echo $1
+    exit 1
+}
+
+([[ -n $ZSH_EVAL_CONTEXT && $ZSH_EVAL_CONTEXT =~ :file$ ]] || 
+ [[ -n $KSH_VERSION && $(cd "$(dirname -- "$0")" &&
+    printf '%s' "${PWD%/}/")$(basename -- "$0") != "${.sh.file}" ]] || 
+ [[ -n $BASH_VERSION ]] && (return 0 2>/dev/null)) && sourced=1 || sourced=0
+
+if [[ $source -eq 0 ]]; then
+   perr "Run as source."
+fi
 python3 -m venv ${DIR}/venv 
 source ${DIR}venv/bin/activate
-pip3 install -r ${DIR}/requirement.txt
+pip3 install -r ${DIR}/requirements.txt

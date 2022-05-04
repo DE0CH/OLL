@@ -1,5 +1,0 @@
-maxExperiments = 2000
-boundMax = 99999999
-boundPar = 2
-testType = "t-test"
-firstTest = 10

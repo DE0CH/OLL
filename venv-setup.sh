@@ -9,5 +9,5 @@ done
 DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 
 python3 -m venv ${DIR}/venv 
-source ${DIR}venv/bin/activate
+source ${DIR}/venv/bin/activate
 pip3 install -r ${DIR}/requirements.txt

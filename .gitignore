@@ -99,3 +99,7 @@ output_static.txt
 __pycache__
 **/__pycache__
 venv
+parameters.txt
+Instances/
+scenario.txt
+

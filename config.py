@@ -1,5 +1,5 @@
 SMALL = False
-N = 2
+N = 3
 
 trials = 500 
 threads = 15

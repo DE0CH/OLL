@@ -7,6 +7,7 @@ from multiprocessing import Pool
 from onell_algs import onell_lambda, onell_dynamic_theory, onell_dynamic_5params
 import matplotlib.pyplot as plt
 import json 
+from pathlib import Path
 
 rng = numpy.random.default_rng(seed)
 best_dynamic_config = [None] * N
@@ -45,6 +46,7 @@ class IraceCaller:
     else:
       self.read_from_output()
   def write_parameters(self):
+    Path("Instances").mkdir(parents=True, exist_ok=True)
     with open("Instances/1.txt", "w") as f:
       f.write(f"{self.size}\n")
 

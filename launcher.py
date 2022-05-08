@@ -19,7 +19,7 @@ class IraceDecoder:
     self.lines = []
   
   def note_line(self, line):
-    if line.strip().startswith("#"):
+    if line.strip().startswith("# Best configurations as commandlines"):
       self.lines = []
     else:
       self.lines.append(line)
@@ -131,11 +131,10 @@ def graph(n, static_lbd, dynamic_lbd, pool, read_json=False):
   else:
     with open(f"performace_{n}.json") as f:
       static_lbd_performace, dynamic_lbd_performace, random_lbd_performace, random_lbd_same_performace, one_lbd_performace, dynamic_theory_performace, five_param_performace = json.load(f)
-    figure, ax = plt.subplots(figsize=(12,5))
-    figure.subplots_adjust(left=0.25)
-    ax.boxplot((static_lbd_performace, dynamic_lbd_performace, random_lbd_performace, random_lbd_same_performace, one_lbd_performace, dynamic_theory_performace, five_param_performace), labels=(f"Static Lambda (lbd={5})", "Dynamic Lambda", "Random Lambda (Lambda changes)", "Random Lambda (Lambda fixed)", "Lambda = 1", "Dynamic Theory", "Five Parameters"), vert=False)
-    figure.savefig(f'box_plot_{n}.png', dpi=300)
-    return 
+  figure, ax = plt.subplots(figsize=(12,5))
+  figure.subplots_adjust(left=0.25)
+  ax.boxplot((static_lbd_performace, dynamic_lbd_performace, random_lbd_performace, random_lbd_same_performace, one_lbd_performace, dynamic_theory_performace, five_param_performace), labels=(f"Static Lambda (lbd={5})", "Dynamic Lambda", "Random Lambda (Lambda changes)", "Random Lambda (Lambda fixed)", "Lambda = 1", "Dynamic Theory", "Five Parameters"), vert=False)
+  figure.savefig(f'box_plot_{n}.png', dpi=300)
 
     
 

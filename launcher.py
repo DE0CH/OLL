@@ -76,12 +76,12 @@ class IraceCallerDynamic(IraceCaller):
     return super().write_parameters()
 
 class IraceCallerStatic(IraceCaller):
-  def __init__(self, size, experiment_multiple, seed, target_runner):
+  def __init__(self, size, experiment_multiple, seed):
       super().__init__(size, experiment_multiple, seed, "./target_runner_static.py")
   
   def write_parameters(self):
     with open("parameters.txt", "w") as f:
-      f.write(f"lbd \"--lbd \" i (1, {self.size-1} \n")
+      f.write(f"lbd \"--lbd \" i (1, {self.size-1}) \n")
     return super().write_parameters()
 
 
@@ -126,11 +126,19 @@ def call_irace_static(size, experiment_multiple_static, seed):
 
 def main():
   global best_dynamic_config
+  dynamic_irace_caller: list[IraceCallerDynamic] = [None] * N
+  static_irace_caller: list[IraceCallerStatic] = [None] * N
   for i in range(N):
     irace_caller = IraceCallerDynamic(sizes[i], experiment_multiples_dynamic[i], rng.integers(1<<15, (1<<16)-1))
     irace_caller.run()
-    break
-
+    dynamic_irace_caller[i] =irace_caller
+  for i in range(N):
+    irace_caller = IraceCallerStatic(sizes[i], experiment_multiples_dynamic[i], rng.integers(1<<15, (1<<16)-1))
+    irace_caller.run()
+    static_irace_caller[i] = irace_caller
+  for i in range(N):
+    print(static_irace_caller[i].best_config)
+    print(dynamic_irace_caller[i].best_config)
   
 
 

@@ -1,8 +1,10 @@
+import multiprocessing
+
 SMALL = False
 N = 3
 
 trials = 500 
-threads = 15
+threads = int(multiprocessing.cpu_count() * 1.5)
 seed = 16950281577708742744
 
 sizes = [

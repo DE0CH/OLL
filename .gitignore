@@ -102,4 +102,5 @@ venv
 parameters.txt
 Instances/
 scenario.txt
-
+.env 
+output/

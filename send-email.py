@@ -9,7 +9,7 @@ import python_http_client
 load_dotenv()
 
 parser = argparse.ArgumentParser("Send notification email")
-parser.add_argument("message", type=str, default="Alert (message not set)")
+parser.add_argument("message", nargs="?", type=str, default="Alert (message not set)")
 args = parser.parse_args()
 
 emailmessage = Mail(

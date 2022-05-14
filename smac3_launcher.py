@@ -20,6 +20,7 @@ from onell_algs import onell_lambda
 from config import seed_small as seed, N, sizes, experiment_multiples_dynamic, experiment_multiples_static, threads
 from utils import graph
 import send_email
+import json
 
 
 rng = np.random.default_rng(seed)
@@ -52,7 +53,15 @@ class SmacCaller:
     )
 
   def run(self):
-    self.best_config = self.smac.optimize()
+    best_config_file_path = os.path.join(self.output_dir, f"best_config_{self.type_name}_{self.size}_{self.experiment_multiple}.json")
+    if os.path.isfile(best_config_file_path):
+      with open(best_config_file_path) as f:
+        self.best_config = json.load(f)
+    else:
+      self.best_config = self.smac.optimize().get_dictionary()
+    print(type(self.best_config))
+    with open(best_config_file_path, "w") as f:
+      json.dump(self.best_config, f)
 
 class SmacCallerStatic(SmacCaller):
   def __init__(self, size, experiment_multiple, seed):

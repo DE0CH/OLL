@@ -1,6 +1,7 @@
 import multiprocessing
+import os
 
-SMALL = None
+SMALL = os.getenv("SMALL", None)
 
 if SMALL == "small":
   N = 3

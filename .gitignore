@@ -104,3 +104,5 @@ Instances/
 scenario.txt
 .env 
 output/
+irace_output/
+smac_output

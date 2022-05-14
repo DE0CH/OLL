@@ -6,7 +6,7 @@ SMALL = os.getenv("SMALL", None)
 if SMALL == "small":
   N = 3
 elif SMALL == "xsmall":
-  N = 1
+  N = 2
 else:
   N = 6
 
@@ -36,6 +36,7 @@ if SMALL == "small":
 elif SMALL == "xsmall":
   experiment_multiples_dynamic = [
     10, 
+    10,
   ]
 else:
   experiment_multiples_dynamic = [
@@ -50,6 +51,6 @@ else:
 if SMALL=="small":
   experiment_multiples_static = [50, 30, 20, 10, 10, 10]
 elif SMALL=="xsmall":
-  experiment_multiples_static = [1]
+  experiment_multiples_static = [1, 1]
 else: 
   experiment_multiples_static = [100] * N

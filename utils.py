@@ -1,5 +1,5 @@
 from onell_algs import onell_lambda, onell_dynamic_theory, onell_dynamic_5params
-import numpy
+import numpy as np
 from config import trials
 import os
 import json
@@ -35,6 +35,11 @@ def graph(n, output_dir, static_multiple, dynamic_multiple, static_lbd, dynamic_
   else:
     with open(json_path) as f:
       static_lbd_performace, dynamic_lbd_performace, random_lbd_performace, random_lbd_same_performace, one_lbd_performace, dynamic_theory_performace, five_param_performace = json.load(f)
+    random_lbd_set = [list(rng.integers(low=1, high=n, size=n)) for _ in range(trials)]
+    random_lbd = list(rng.integers(low=1, high=n, size=n))
+    for i in range(7):
+      next_seeds(trials)
+
   figure, ax = plt.subplots(figsize=(12,5))
   figure.subplots_adjust(left=0.25)
   ax.boxplot((static_lbd_performace, dynamic_lbd_performace, random_lbd_performace, random_lbd_same_performace, one_lbd_performace, dynamic_theory_performace, five_param_performace), labels=(f"Static Lambda (lbd={5})", "Dynamic Lambda", "Random Lambda (Lambda changes)", "Random Lambda (Lambda fixed)", "Lambda = 1", "Dynamic Theory", "Five Parameters"), vert=False)

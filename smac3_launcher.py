@@ -34,7 +34,6 @@ class SmacCaller:
     self.type_name = type_name
     self.cs = ConfigurationSpace()
     self.runner = None
-    self.config()
 
 
   def config(self):
@@ -58,6 +57,7 @@ class SmacCaller:
       with open(best_config_file_path) as f:
         self.best_config = json.load(f)
     else:
+      self.config()
       self.best_config = self.smac.optimize().get_dictionary()
     with open(best_config_file_path, "w") as f:
       json.dump(self.best_config, f)

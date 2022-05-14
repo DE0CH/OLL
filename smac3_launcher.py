@@ -59,7 +59,6 @@ class SmacCaller:
         self.best_config = json.load(f)
     else:
       self.best_config = self.smac.optimize().get_dictionary()
-    print(type(self.best_config))
     with open(best_config_file_path, "w") as f:
       json.dump(self.best_config, f)
 

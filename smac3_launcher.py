@@ -18,7 +18,7 @@ from smac.scenario.scenario import Scenario
 from onell_algs import onell_lambda
 
 
-from config import seed_small as seed, N, sizes, experiment_multiples_dynamic, experiment_multiples_static, threads
+from config import seed_small as seed, N, sizes, experiment_multiples_dynamic, experiment_multiples_static, threads, EMAIL
 from utils import graph
 import send_email
 import socket
@@ -101,10 +101,11 @@ def main():
     smac_caller_static = SmacCallerStatic(sizes[i], experiment_multiples_static[i], rng.integers(1<<15, (1<<16)-1))
     smac_caller_static.run()
     graph(sizes[i], "smac_output", experiment_multiples_static[i], experiment_multiples_dynamic[i], [smac_caller_static.best_config["lbd"]]*sizes[i], [smac_caller_dynamic.best_config[f"lbd{i}"] for i in range(sizes[i])], rng, pool)
-    try:
-      send_email.main(f"SMAC: {sizes[i]} Done on {socket.gethostname()}.")
-    except:
-      pass
+    if EMAIL:
+      try:
+        send_email.main(f"SMAC: {sizes[i]} Done on {socket.gethostname()}.")
+      except:
+        pass
 
 
 

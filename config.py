@@ -6,7 +6,6 @@ load_dotenv()
 
 SMALL = os.getenv("SMALL", None)
 EMAIL = os.getenv("EMAIL", "false").strip() == "true"
-print(EMAIL)
 
 if SMALL == "small":
   N = 3

@@ -11,6 +11,7 @@ from ConfigSpace.hyperparameters import UniformFloatHyperparameter, UniformInteg
 # Import ConfigSpace and different types of parameters
 from smac.configspace import ConfigurationSpace
 from smac.facade.smac_bb_facade import SMAC4BB
+from smac.facade.smac_ac_facade import SMAC4AC
 
 # Import SMAC-utilities
 from smac.scenario.scenario import Scenario
@@ -20,6 +21,7 @@ from onell_algs import onell_lambda
 from config import seed_small as seed, N, sizes, experiment_multiples_dynamic, experiment_multiples_static, threads
 from utils import graph
 import send_email
+import socket
 import json
 
 
@@ -45,7 +47,7 @@ class SmacCaller:
       "deterministic": "false",
       "output_dir": os.path.join(self.output_dir, f"{self.type_name}_{self.size}_{self.experiment_multiple}")
     })
-    self.smac = SMAC4BB(
+    self.smac = SMAC4AC(
       scenario=self.scenario,
       rng=np.random.RandomState(self.seed),
       tae_runner=self.runner,
@@ -100,7 +102,7 @@ def main():
     smac_caller_static.run()
     graph(sizes[i], "smac_output", experiment_multiples_static[i], experiment_multiples_dynamic[i], [smac_caller_static.best_config["lbd"]]*sizes[i], [smac_caller_dynamic.best_config[f"lbd{i}"] for i in range(sizes[i])], rng, pool)
     try:
-      send_email.main(f"SMAC: {sizes[i]} Done.")
+      send_email.main(f"SMAC: {sizes[i]} Done on {socket.gethostname()}.")
     except:
       pass
 

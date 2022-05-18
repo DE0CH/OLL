@@ -9,10 +9,5 @@
 
 module load anaconda
 
-cd $SLURM_SUBMIT_DIR
-
-eval "$(conda shell.bash hook)"
-conda activate ./.conda
-
 python3 probe.py $SLURM_ARRAY_TASK_ID
 

@@ -1,10 +1,11 @@
 import logging
+from threading import Thread
 
 logging.basicConfig(level=logging.ERROR)
 
 import numpy as np
 import os
-from multiprocessing.pool import Pool
+from multiprocessing.pool import Pool, ThreadPool
 
 from ConfigSpace.hyperparameters import UniformFloatHyperparameter, UniformIntegerHyperparameter
 
@@ -112,20 +113,6 @@ def onell_lambda_positional(size, lbds, seed):
   _, _, performance = onell_lambda(size, lbds=lbds, seed=seed)
   return performance
 
-async def evaluate_smac(type, size, experiment_multiple, seed, seeds, pool: Pool):
-  best_config = pool.apply_async(run_smac, (type, size, experiment_multiple, seed))
-  best_config = best_config.get()
-  file_path = os.path.join("smac_output", f"performances_{type}_{size}_{experiment_multiple}_{seed}.json")
-  try:
-    with open(file_path) as f:
-      performances = json.load(f)
-  except (FileNotFoundError, json.decoder.JSONDecodeError):
-    performances = pool.starmap(onell_lambda_positional, zip([size]*trials, [best_config]*trials, seeds))
-    performances = list(performances)
-    with open(file_path, 'w') as f:
-      json.dump(performances, f)
-  return best_config, performances
-
 def run_smac(type: OnellType, size, experiment_multiple, seed):
   if type == OnellType.dynamic:
     smac_caller = SmacCallerDynamic(size, experiment_multiple, seed)
@@ -136,53 +123,46 @@ def run_smac(type: OnellType, size, experiment_multiple, seed):
   smac_caller.run()
   return smac_caller.best_config
 
-async def find_best_config(runs):
-  runs = [await run for run in runs]
-  configs = [config for config, performances in runs]
-  performancess = [performances for config, performances in runs]
-  i = np.argmin(np.mean(performancess, axis=1))
-  return configs[i], performancess[i]
+def find_performancess(size, runs, seeds, pool):
+  return [
+    pool.starmap_async(onell_lambda_positional, zip([size]*trials, [best_config]*trials, seeds)) 
+    for best_config in runs.get()
+  ]
 
 
-async def main(i):
+def main(i):
   pool = Pool(threads)
+  tpool = ThreadPool()
   rng = np.random.default_rng(seed)
-  dynamic_runs = [asyncio.create_task(
-    evaluate_smac(
+  dynamic_runs = pool.starmap_async(run_smac, [(
       OnellType.dynamic, 
       sizes[i], 
       experiment_multiples_dynamic[i], 
       rng.integers(1<<15, (1<<16)-1), 
-      rng.integers(1<<15, (1<<16)-1, trials),
-      pool
-    )
-  ) for _ in range(threads)]
-  static_runs = [asyncio.create_task(
-    evaluate_smac(
+    ) for _ in range(threads)]
+  )
+  static_runs = pool.starmap_async(run_smac, [
+    (
       OnellType.static,
       sizes[i],
       experiment_multiples_static[i],
       rng.integers(1<<15, (1<<16)-1), 
-      rng.integers(1<<15, (1<<16)-1, trials),
-      pool
-    )
-  ) for _ in range(threads)] 
-  best_config_dynamic = asyncio.create_task(find_best_config(dynamic_runs))
-  best_config_static = asyncio.create_task(find_best_config(static_runs))
-  best_config_dynamic, performances_dynamics = await best_config_dynamic
-  best_config_static, performances_static = await best_config_static
-
-  graph(sizes[i], "smac_output", experiment_multiples_dynamic[i], experiment_multiples_static[i], best_config_dynamic, best_config_static, rng, pool)
-  if EMAIL:
-    try:
-      send_email.main(f"SMAC: {sizes[i]} Done on {socket.gethostname()}.")
-    except:
-      pass
-
+    ) for _ in range(threads)]
+  )
+  performancess_dynamic = tpool.apply_async(find_performancess, (sizes[i], dynamic_runs, rng.integers(1<<15, (1<<16)-1, trials), pool))
+  performancess_static = tpool.apply_async(find_performancess, (sizes[i], static_runs, rng.integers(1<<15, (1<<16)-1, trials), pool))
+  
+  performancess_dynamic = [performances_dynamic.get() for performances_dynamic in performancess_dynamic.get()]
+  print(performancess_dynamic)
+  tpool.close()
+  pool.close()
+  pool.join()
+  tpool.join()
+  return
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
   parser.add_argument("i", type=int)
   args = parser.parse_args()
 
-  asyncio.run(main(args.i))
+  main(args.i)

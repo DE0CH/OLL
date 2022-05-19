@@ -16,6 +16,7 @@ else:
 
 trials = 500 
 threads = int(multiprocessing.cpu_count() * 1.5)
+smac_instances = threads
 seed = 16950281577708742744
 seed_small = 2213319694
 

@@ -16,17 +16,17 @@ from smac.facade.smac_ac_facade import SMAC4AC
 
 # Import SMAC-utilities
 from smac.scenario.scenario import Scenario
-from onell_algs import onell_lambda
+from onell_algs import onell_dynamic_5params, onell_lambda, onell_dynamic_theory
 
 
 from config import seed_small as seed, N, sizes, experiment_multiples_dynamic, experiment_multiples_static, threads, EMAIL, trials, smac_instances
-from utils import graph
 import send_email
 import socket
 import json
 import argparse
 import asyncio
 from dataclasses import dataclass
+import matplotlib.pyplot as plt
 
 @dataclass
 class OnellType:
@@ -113,6 +113,15 @@ def onell_lambda_positional(size, lbds, seed):
   _, _, performance = onell_lambda(size, lbds=lbds, seed=seed)
   return performance
 
+def onell_dynamic_5params_positional(size, seed): 
+  _, _, performance = onell_dynamic_5params(size, seed=seed)
+  return performance
+
+def onell_dynamic_theory_positional(size, seed):
+  _, _, performance = onell_dynamic_theory(size, seed=seed)
+  return performance
+
+
 def run_smac(type: OnellType, size, experiment_multiple, seed):
   if type == OnellType.dynamic:
     smac_caller = SmacCallerDynamic(size, experiment_multiple, seed)
@@ -129,6 +138,18 @@ def find_performancess(size, runs, seeds, pool):
     for best_config in runs.get()
   ]
 
+def graph(json_path, png_path, dynamic_lbd_performance, static_lbd_performance, random_lbd_performance, one_lbd_performance, dynamic_theory_performance, dynamic_5params_performance):
+  data = (dynamic_lbd_performance, static_lbd_performance, random_lbd_performance, one_lbd_performance, dynamic_theory_performance, dynamic_5params_performance)
+  with open(json_path, 'w') as f:
+    json.dump(data, f)
+  figure, ax = plt.subplots(figsize=(12,5))
+  figure.subplots_adjust(left=0.25)
+  ax.boxplot(data, labels=(f"Static Lambda (lbd={5})", "Dynamic Lambda", "Random Lambda", "Lambda = 1", "Dynamic Theory", "Five Parameters"), vert=False)
+  figure.savefig(png_path, dpi=300)
+  
+def find_best_performances_i(performancess):
+  performancess = [performances.get() for performances in performancess.get()]
+  return np.argmin(np.mean(performancess, axis=1))
 
 def main(i):
   pool = Pool(threads)
@@ -151,9 +172,27 @@ def main(i):
   )
   performancess_dynamic = tpool.apply_async(find_performancess, (sizes[i], dynamic_runs, rng.integers(1<<15, (1<<16)-1, trials), pool))
   performancess_static = tpool.apply_async(find_performancess, (sizes[i], static_runs, rng.integers(1<<15, (1<<16)-1, trials), pool))
+  best_performances_dynamic_i = tpool.apply_async(find_best_performances_i, (performancess_dynamic, ))
+  best_performances_static_i = tpool.apply_async(find_best_performances_i, (performancess_static, ))
   
-  performancess_dynamic = [performances_dynamic.get() for performances_dynamic in performancess_dynamic.get()]
-  print(performancess_dynamic)
+  random_lbd_performance = pool.starmap_async(onell_lambda_positional, zip([sizes[i]]*trials, [list(rng.integers(1, sizes[i], sizes[i])) for _ in range(trials)], rng.integers(1<<15, (1<<16)-1, trials))) 
+  one_ldb_performance = pool.starmap_async(onell_lambda_positional, zip([sizes[i]]*trials, [[1]*sizes[i]]*trials, rng.integers(1<<15, (1<<16)-1, trials)))
+  dynamic_theory_performance = pool.starmap_async(onell_dynamic_theory_positional, zip([sizes[i]]*trials, rng.integers(1<<15, (1<<16)-1, trials)))
+  dynamic_5params_performance = pool.starmap_async(onell_dynamic_5params_positional, zip([sizes[i]]*trials, rng.integers(1<<15, (1<<16)-1, trials)))
+
+  graph(
+    os.path.join("smac_output", f"performance_{sizes[i]}_{experiment_multiples_dynamic[i]}_{experiment_multiples_static[i]}.json"),
+    os.path.join("smac_output", f"performance_{sizes[i]}_{experiment_multiples_dynamic[i]}_{experiment_multiples_static[i]}.png"),
+    performancess_dynamic.get()[best_performances_dynamic_i.get()].get(),
+    performancess_static.get()[best_performances_static_i.get()].get(),
+    random_lbd_performance.get(),
+    one_ldb_performance.get(),
+    dynamic_theory_performance.get(),
+    dynamic_5params_performance.get(),
+  )
+
+
+  
   tpool.close()
   pool.close()
   pool.join()

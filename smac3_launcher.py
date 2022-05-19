@@ -1,17 +1,16 @@
 import logging
 
-logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', level=logging.DEBUG)
+logging.basicConfig(level=logging.ERROR)
 
-logging.debug("Importing statement")
 import numpy as np
 import os
-from multiprocessing.pool import Pool, AsyncResult
-import asyncio
+from multiprocessing.pool import Pool
 
-from ConfigSpace.hyperparameters import UniformIntegerHyperparameter
+from ConfigSpace.hyperparameters import UniformFloatHyperparameter, UniformIntegerHyperparameter
 
 # Import ConfigSpace and different types of parameters
 from smac.configspace import ConfigurationSpace
+from smac.facade.smac_bb_facade import SMAC4BB
 from smac.facade.smac_ac_facade import SMAC4AC
 
 # Import SMAC-utilities
@@ -20,24 +19,30 @@ from onell_algs import onell_lambda
 
 
 from config import seed_small as seed, N, sizes, experiment_multiples_dynamic, experiment_multiples_static, threads, EMAIL, trials, smac_instances
+from utils import graph
+import send_email
+import socket
 import json
 import argparse
-logging.debug("Finished Importing")
+import asyncio
+from dataclasses import dataclass
 
+@dataclass
+class OnellType:
+  dynamic = 1
+  static = 2
 
 class SmacCaller:
-  def __init__(self, type_name, size, experiment_multiple, seed, pool, output_dir="smac_output"):
+  def __init__(self, type_name, size, experiment_multiple, seed, output_dir="smac_output"):
     self.output_dir = output_dir
     self.size = size
     self.experiment_multiple = experiment_multiple
     self.seed = seed
     self.type_name = type_name
     self.cs = ConfigurationSpace()
-    self.pool: Pool = pool
+    self.best_config_dict = None
     self.runner = None
-    self.best_config_dict_result: AsyncResult = None
-    self.best_config = None
-    self.best_config_file_path = os.path.join(self.output_dir, f"best_config_{self.type_name}_{self.size}_{self.experiment_multiple}_{seed}.json")
+    self.best_config_file_path = os.path.join(self.output_dir, f"best_config_{self.type_name}_{self.size}_{self.experiment_multiple}_{self.seed}.json")
 
 
   def config(self):
@@ -54,29 +59,23 @@ class SmacCaller:
       tae_runner=self.runner,
     )
 
-  def run_async(self):
+  def parse_result(self):
+    raise NotImplementedError()
+
+  def run(self):
     if os.path.isfile(self.best_config_file_path):
       with open(self.best_config_file_path) as f:
         self.best_config = json.load(f)
     else:
       self.config()
-      self.best_config_dict_result = self.pool.apply_async(self.smac.optimize)
-
-
-  def get_best_config(self):
-    if self.best_config is not None:
-      return self.best_config
-    else:
-      best_config_dict = self.best_config_dict_result.get()
-      self.best_config = [best_config_dict[f"lbd{i}"] for i in range(self.size)]
-      with open(self.best_config_file_path, "w") as f:
-        json.dump(self.best_config, f)
-      return self.best_config
-
+      self.best_config_dict = self.smac.optimize().get_dictionary()
+      self.parse_result()
+    with open(self.best_config_file_path, "w") as f:
+      json.dump(self.best_config, f)
 
 class SmacCallerStatic(SmacCaller):
-  def __init__(self, size, experiment_multiple, seed, pool):
-    super().__init__("static", size, experiment_multiple, seed, pool)
+  def __init__(self, size, experiment_multiple, seed):
+    super().__init__("static", size, experiment_multiple, seed)
 
   def config(self):
     def runner(x, seed=0):
@@ -88,9 +87,12 @@ class SmacCallerStatic(SmacCaller):
     self.cs.add_hyperparameters([lbd])
     super().config()
 
+  def parse_result(self):
+    self.best_config = [self.best_config_dict["lbd"] for _ in range(self.size)]
+
 class SmacCallerDynamic(SmacCaller):
-  def __init__(self, size, experiment_multiple, seed, pool):
-    super().__init__("dynamic", size, experiment_multiple, seed, pool)
+  def __init__(self, size, experiment_multiple, seed):
+    super().__init__("dynamic", size, experiment_multiple, seed)
 
   def config(self):
     def runner(x, seed=0):
@@ -102,61 +104,85 @@ class SmacCallerDynamic(SmacCaller):
     self.runner = runner
     self.cs.add_hyperparameters([UniformIntegerHyperparameter(f"lbd{i}", 1, self.size-1) for i in range(self.size)])
     super().config()
+  
+  def parse_result(self):
+    self.best_config = [self.best_config_dict[f"lbd{i}"] for i in range(self.size)]
 
-class OnellEvaluator():
-  def __init__(self, smac_caller: SmacCaller, seed, pool: Pool):
-    self.smac_caller: SmacCaller = smac_caller
-    self.seed = seed
-    self.pool: Pool = pool
-    self.performance_result = None
-    self.performance = None
-  def run_async(self):
-    if isinstance(self.smac_caller, SmacCallerDynamic):  
-      lbds = self.smac_caller.get_best_config()
-    elif isinstance(self.smac_caller, SmacCallerStatic):
-      lbds = self.smac_caller.get_best_config() * self.smac_caller.size
-    else:
-      raise NotImplementedError("Unknown SmacCaller Type")
-    self.performance_result = self.pool.apply_async(onell_lambda, (self.smac_caller.size, ), {'seed': self.seed, 'lbds': lbds})
-  def get_performance(self):
-    if self.performance is not None:
-      return self.performance
-    else:
-      self.performance = self.performance_result.get()
-      return self.performance
+def onell_lambda_positional(size, lbds, seed):
+  _, _, performance = onell_lambda(size, lbds=lbds, seed=seed)
+  return performance
 
-def randints(rng, n):
-  return rng.integers(1<<15, (1<<16)-1, n)
+async def evaluate_smac(type, size, experiment_multiple, seed, seeds, pool: Pool):
+  best_config = pool.apply_async(run_smac, (type, size, experiment_multiple, seed))
+  best_config = best_config.get()
+  file_path = os.path.join("smac_output", f"performances_{type}_{size}_{experiment_multiple}_{seed}.json")
+  try:
+    with open(file_path) as f:
+      performances = json.load(f)
+  except (FileNotFoundError, json.decoder.JSONDecodeError):
+    performances = pool.starmap(onell_lambda_positional, zip([size]*trials, [best_config]*trials, seeds))
+    performances = list(performances)
+    with open(file_path, 'w') as f:
+      json.dump(performances, f)
+  return best_config, performances
 
-def randint(rng):
-  return rng.integers(1<<15, (1<<16)-1)
+def run_smac(type: OnellType, size, experiment_multiple, seed):
+  if type == OnellType.dynamic:
+    smac_caller = SmacCallerDynamic(size, experiment_multiple, seed)
+  elif type == OnellType.static:
+    smac_caller = SmacCallerStatic(size, experiment_multiple, seed)
+  else:
+    raise NotImplementedError("Unknown OneLL type to run")
+  smac_caller.run()
+  return smac_caller.best_config
+
+async def find_best_config(runs):
+  runs = [await run for run in runs]
+  configs = [config for config, performances in runs]
+  performancess = [performances for config, performances in runs]
+  i = np.argmin(np.mean(performancess, axis=1))
+  return configs[i], performancess[i]
+
 
 async def main(i):
   pool = Pool(threads)
   rng = np.random.default_rng(seed)
-  smac_dynamic_callers = [SmacCallerDynamic(sizes[i], experiment_multiples_dynamic[i], randint(rng), pool) for _ in range(smac_instances)]
-  [caller.run_async() for caller in smac_dynamic_callers]
+  dynamic_runs = [asyncio.create_task(
+    evaluate_smac(
+      OnellType.dynamic, 
+      sizes[i], 
+      experiment_multiples_dynamic[i], 
+      rng.integers(1<<15, (1<<16)-1), 
+      rng.integers(1<<15, (1<<16)-1, trials),
+      pool
+    )
+  ) for _ in range(threads)]
+  static_runs = [asyncio.create_task(
+    evaluate_smac(
+      OnellType.static,
+      sizes[i],
+      experiment_multiples_static[i],
+      rng.integers(1<<15, (1<<16)-1), 
+      rng.integers(1<<15, (1<<16)-1, trials),
+      pool
+    )
+  ) for _ in range(threads)] 
+  best_config_dynamic = asyncio.create_task(find_best_config(dynamic_runs))
+  best_config_static = asyncio.create_task(find_best_config(static_runs))
+  best_config_dynamic, performances_dynamics = await best_config_dynamic
+  best_config_static, performances_static = await best_config_static
 
-  smac_static_callers = [SmacCallerStatic(sizes[i], experiment_multiples_static[i], randint(rng), pool) for _ in range(smac_instances)]
-  [caller.run_async() for caller in smac_static_callers]
+  graph(sizes[i], "smac_output", experiment_multiples_dynamic[i], experiment_multiples_static[i], best_config_dynamic, best_config_static, rng, pool)
+  if EMAIL:
+    try:
+      send_email.main(f"SMAC: {sizes[i]} Done on {socket.gethostname()}.")
+    except:
+      pass
 
-  performances_dynamic = [[OnellEvaluator(smac_dynamic_caller, randint(rng), pool) for _ in range(trials)] for smac_dynamic_caller in smac_dynamic_callers]
-  [[evaluator.run_async() for evaluator in performance_dynamic] for performance_dynamic in performances_dynamic]
-
-  performances_static = [[OnellEvaluator(smac_static_caller, randint(rng), pool) for _ in range(trials)] for smac_static_caller in smac_static_callers]
-  [[evaluator.run_async() for evaluator in performance_static] for performance_static in performances_static]
-
-  best_performance_dynamic_i = np.argmin(np.mean([[evaluator.get_performance() for evaluator in performances_dynamic] for _ in smac_static_callers], axis=1))
-  best_performance_static_i = np.argmin(np.mean([[evaluator.get_performance() for evaluator in performances_static] for _ in smac_static_callers]))
-  best_performance_dynamic: SmacCallerDynamic = smac_dynamic_callers[best_performance_dynamic_i]
-  best_performance_static: SmacCallerStatic = smac_static_callers[best_performance_static_i]
-
-  print(best_performance_dynamic.get_best_config())
-  print(best_performance_static.get_best_config())
 
 if __name__ == "__main__":
-  argparser = argparse.ArgumentParser()
-  argparser.add_argument('i', type=int)
-  args = argparser.parse_args()
-  i = args.i
-  asyncio.run(main(i))
+  parser = argparse.ArgumentParser()
+  parser.add_argument("i", type=int)
+  args = parser.parse_args()
+
+  asyncio.run(main(args.i))

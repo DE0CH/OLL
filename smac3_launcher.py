@@ -27,6 +27,7 @@ import argparse
 import asyncio
 from dataclasses import dataclass
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 @dataclass
 class OnellType:
@@ -154,6 +155,7 @@ def find_best_performances_i(performancess):
 def main(i):
   pool = Pool(threads)
   tpool = ThreadPool()
+  Path("smac_output").mkdir(exist_ok=True, parents=True)
   rng = np.random.default_rng(seed)
   dynamic_runs = pool.starmap_async(run_smac, [(
       OnellType.dynamic, 

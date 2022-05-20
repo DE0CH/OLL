@@ -3,3 +3,4 @@ matplotlib
 sendgrid
 python-dotenv
 smac
+ConfigSpace

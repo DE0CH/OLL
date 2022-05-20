@@ -15,4 +15,4 @@ cd $SLURM_SUBMIT_DIR
 eval "$(conda shell.bash hook)"
 conda activate ./.conda
 
-srun python3 smac3_launcher.py $SLURM_ARRAY_TASK_ID
+python3 smac3_launcher.py $SLURM_ARRAY_TASK_ID

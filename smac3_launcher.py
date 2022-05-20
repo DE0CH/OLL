@@ -64,10 +64,10 @@ class SmacCaller:
     raise NotImplementedError()
 
   def run(self):
-    if os.path.isfile(self.best_config_file_path):
+    try:
       with open(self.best_config_file_path) as f:
         self.best_config = json.load(f)
-    else:
+    except (FileNotFoundError, json.decoder.JSONDecodeError):
       self.config()
       self.best_config_dict = self.smac.optimize().get_dictionary()
       self.parse_result()
@@ -144,7 +144,7 @@ def graph(json_path, png_path, dynamic_lbd_performance, static_lbd_performance, 
     json.dump(data, f)
   figure, ax = plt.subplots(figsize=(12,5))
   figure.subplots_adjust(left=0.25)
-  ax.boxplot(data, labels=(f"Static Lambda (lbd={5})", "Dynamic Lambda", "Random Lambda", "Lambda = 1", "Dynamic Theory", "Five Parameters"), vert=False)
+  ax.boxplot(data, labels=(f"Static Lambda", "Dynamic Lambda", "Random Lambda", "Lambda = 1", "Dynamic Theory", "Five Parameters"), vert=False)
   figure.savefig(png_path, dpi=300)
   
 def find_best_performances_i(performancess):
@@ -170,6 +170,7 @@ def main(i):
       rng.integers(1<<15, (1<<16)-1), 
     ) for _ in range(threads)]
   )
+
   performancess_dynamic = tpool.apply_async(find_performancess, (sizes[i], dynamic_runs, rng.integers(1<<15, (1<<16)-1, trials), pool))
   performancess_static = tpool.apply_async(find_performancess, (sizes[i], static_runs, rng.integers(1<<15, (1<<16)-1, trials), pool))
   best_performances_dynamic_i = tpool.apply_async(find_best_performances_i, (performancess_dynamic, ))
@@ -180,6 +181,9 @@ def main(i):
   dynamic_theory_performance = pool.starmap_async(onell_dynamic_theory_positional, zip([sizes[i]]*trials, rng.integers(1<<15, (1<<16)-1, trials)))
   dynamic_5params_performance = pool.starmap_async(onell_dynamic_5params_positional, zip([sizes[i]]*trials, rng.integers(1<<15, (1<<16)-1, trials)))
 
+  # Can wait for everything from here
+  with open(os.path.join("smac_output", f"i_{sizes[i]}_{experiment_multiples_dynamic[i]}_{experiment_multiples_static[i]}.json"), 'w') as f:
+    json.dump([dynamic_runs.get()[best_performances_dynamic_i.get()], static_runs.get()[best_performances_static_i.get()]], f)
   graph(
     os.path.join("smac_output", f"performance_{sizes[i]}_{experiment_multiples_dynamic[i]}_{experiment_multiples_static[i]}.json"),
     os.path.join("smac_output", f"performance_{sizes[i]}_{experiment_multiples_dynamic[i]}_{experiment_multiples_static[i]}.png"),

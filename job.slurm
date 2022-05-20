@@ -3,7 +3,7 @@
 #SBATCH --partition=standard
 #SBATCH --qos=standard
 #SBATCH --exclusive
-#SBATCH --nodes=6
+#SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
 #SBATCH --array=0-5
 #SBATCH --time=96:00:00

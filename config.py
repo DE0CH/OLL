@@ -45,12 +45,12 @@ elif SMALL == "xsmall":
   ]
 else:
   experiment_multiples_dynamic = [
-    10**4, 
-    10**4,
-    10**4,
-    5000,
-    2000,
-    1000,
+    10**3, 
+    10**3,
+    10**3,
+    500,
+    200,
+    100,
   ] 
 
 if SMALL=="small":

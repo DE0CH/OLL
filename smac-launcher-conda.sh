@@ -11,4 +11,5 @@ cd DIR
 
 eval "$(conda shell.bash hook)"
 conda activate SMAC
+pip3 install -r requirements.txt
 SMALL=$SMALL python3 smac3_launcher.py $1

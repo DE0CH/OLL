@@ -11,4 +11,4 @@ cd DIR
 
 eval "$(conda shell.bash hook)"
 conda activate SMAC
-SMALL=$SMALL EMAIL=$EMAIL python3 smac3_launcher.py $1
+SMALL=$SMALL python3 smac3_launcher.py $1

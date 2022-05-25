@@ -156,11 +156,11 @@ def main(i):
   pool = Pool(threads)
   tpool = ThreadPool()
   Path("smac_output").mkdir(exist_ok=True, parents=True)
-  rng = np.random.default_rng(seed)
+  rng = np.random.default_rng(seed*i)
   dynamic_runs = pool.starmap_async(run_smac, [(
       OnellType.dynamic, 
       sizes[i], 
-      experiment_multiples_dynamic[i], 
+      experiment_multiples_dynamic[i] // smac_instances, 
       rng.integers(1<<15, (1<<16)-1), 
     ) for _ in range(threads)]
   )
@@ -168,7 +168,7 @@ def main(i):
     (
       OnellType.static,
       sizes[i],
-      experiment_multiples_static[i],
+      experiment_multiples_static[i] // smac_instances,
       rng.integers(1<<15, (1<<16)-1), 
     ) for _ in range(threads)]
   )

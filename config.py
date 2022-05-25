@@ -16,7 +16,7 @@ else:
 
 trials = 500 
 threads = int(multiprocessing.cpu_count() * 1.5)
-smac_instances = threads
+smac_instances = 12
 seed = 16950281577708742744
 seed_small = 2213319694
 
@@ -45,12 +45,12 @@ elif SMALL == "xsmall":
   ]
 else:
   experiment_multiples_dynamic = [
-    10**3, 
-    10**3,
-    10**3,
-    500,
-    200,
-    100,
+    10**5, 
+    10**5,
+    10**5,
+    50000,
+    20000,
+    10000,
   ] 
 
 if SMALL=="small":

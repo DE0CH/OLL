@@ -23,7 +23,7 @@ def run(i, machine):
     pc_name = f'pc8-{n:03}-l'
     try:
       logging.info(f"trying to run i = {i} on machine {pc_name}")
-      subprocess.run(['rsync', '-azPI', '--delete', '--timeout=10', dir_path, f"{pc_name}:{dir_path}"]).check_returncode()
+      subprocess.run(['rsync', '-azPI', '--delete', '--timeout=10', f"{dir_path}/", f"{pc_name}:{dir_path}"]).check_returncode()
       subprocess.run(['ssh', '-o', 'ConnectTimeout=10', f'SMALL={config.SMALL}', pc_name, os.path.join(dir_path, 'smac3_launcher-conda.sh')], f'{i}').check_returncode()
       subprocess.run(['rsync', '-azP', '--timeout=10', f"{pc_name}:{os.path.join(dir_path, 'smac_output')}/", os.path.join(dir_path, 'smac_output')])
       if config.EMAIL:

@@ -24,7 +24,7 @@ def run(i, machine):
     try:
       logging.info(f"trying to run i = {i} on machine {pc_name}")
       subprocess.run(['rsync', '-azPI', '--delete', '--timeout=10', f"{dir_path}/", f"{pc_name}:{dir_path}"], capture_output=True).check_returncode()
-      subprocess.run(['ssh', '-o', 'ConnectTimeout=10', f'SMALL={config.SMALL}', pc_name, os.path.join(dir_path, 'smac3-launcher-conda.sh'), f'{i}'], capture_output=True).check_returncode()
+      subprocess.run(['ssh', '-o', 'ConnectTimeout=10', pc_name, f'SMALL={config.SMALL}', os.path.join(dir_path, 'smac3-launcher-conda.sh'), f'{i}'], capture_output=True).check_returncode()
       subprocess.run(['rsync', '-azP', '--timeout=10', f"{pc_name}:{os.path.join(dir_path, 'smac_output')}/", os.path.join(dir_path, 'smac_output')], capture_output=True).check_returncode()
       if config.EMAIL:
         send_email.main(f"{socket.gethostname()}: irace done with i = {i} size = {config.sizes[i]}")

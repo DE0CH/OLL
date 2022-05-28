@@ -2,9 +2,7 @@
 
 #SBATCH --partition=standard
 #SBATCH --qos=standard
-#SBATCH --exclusive
-#SBATCH --nodes=6
-#SBATCH --tasks-per-node=1
+#SBATCH --cpus-per-task=36
 #SBATCH --array=0-5
 
 module load anaconda

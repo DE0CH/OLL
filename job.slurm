@@ -4,6 +4,7 @@
 #SBATCH --qos=standard
 #SBATCH --cpus-per-task=36
 #SBATCH --array=0-5
+#SBATCH --time=96:00:00
 
 module load anaconda
 

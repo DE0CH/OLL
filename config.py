@@ -38,7 +38,7 @@ if SMALL == "small":
     10,
     10
   ]
-elif SMALL == "smaller";
+elif SMALL == "smaller":
   experiment_multiples_dynamic = [
     10**4, 
     10**4,

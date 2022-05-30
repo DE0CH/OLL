@@ -7,4 +7,4 @@ RUN apt-get install -y r-base
 RUN Rscript -e "install.packages('irace', repos='https://cloud.r-project.org')"
 WORKDIR /usr/app
 
-CMD export PATH="$(Rscript -e "cat(paste0(system.file(package='irace', 'bin', mustWork=TRUE), ':'))" 2> /dev/null)${PATH}" && python3 launcher.py
+PATH="$(Rscript -e "cat(paste0(system.file(package='irace', 'bin', mustWork=TRUE), ':'))" 2> /dev/null)${PATH}" python3 launcher.py

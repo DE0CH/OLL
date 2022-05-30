@@ -33,13 +33,13 @@ class IraceDecoder:
 class IraceCaller:
   def __init__(self, size, experiment_multiple, seed, type_name):
     Path("Instances").mkdir(parents=True, exist_ok=True)
-    Path("output").mkdir(parents=True, exist_ok=True)
+    Path("irace_output").mkdir(parents=True, exist_ok=True)
     self.size = size
     self.experiment_multiple = experiment_multiple
     self.seed = seed
     self.target_runner = f"target_runner_{type_name}.py"
     self.output_file = f"irace_output_{type_name}_{size}_{experiment_multiple}.txt"
-    self.read_output = os.path.isfile(f"output/{self.output_file}")
+    self.read_output = os.path.isfile(f"irace_output/{self.output_file}")
     self.log_file = f"irace_{type_name}_{size}_{experiment_multiple}.Rdata"
     self.type_name = type_name
   
@@ -63,8 +63,8 @@ class IraceCaller:
       f.write(f"firstTest = 10\n")
 
   def call_and_record(self): 
-    output_f = open(f"output/{self.output_file}.progress", 'w') 
-    process = subprocess.Popen(["irace", "--parallel", str(threads), "--seed", str(self.seed), "--log-file", f"output/{self.log_file}"], stdout=subprocess.PIPE)
+    output_f = open(f"irace_output/{self.output_file}.progress", 'w') 
+    process = subprocess.Popen(["irace", "--parallel", str(threads), "--seed", str(self.seed), "--log-file", f"irace_output/{self.log_file}"], stdout=subprocess.PIPE)
     decoder = IraceDecoder()
     while True:
       try:
@@ -76,12 +76,12 @@ class IraceCaller:
       except StopIteration:
         break
     output_f.close()
-    os.rename(f"output/{self.output_file}.progress", f"output/{self.output_file}")
+    os.rename(f"irace_output/{self.output_file}.progress", f"irace_output/{self.output_file}")
     self.best_config = decoder.end()
 
   def read_from_output(self):
     decoder = IraceDecoder()
-    with open(f"output/{self.output_file}") as f:
+    with open(f"irace_output/{self.output_file}") as f:
       for line in f:
         decoder.note_line(line)
     self.best_config = decoder.end()
@@ -120,7 +120,7 @@ def next_seeds(size):
     return res
   
 def graph(n, static_multiple, dynamic_multiple, static_lbd, dynamic_lbd, pool):
-  if not os.path.isfile(f"output/performace_{n}_{static_multiple}_{dynamic_multiple}.json"):
+  if not os.path.isfile(f"irace_output/performace_{n}_{static_multiple}_{dynamic_multiple}.json"):
     random_lbd_set = [list(rng.integers(low=1, high=n, size=n)) for _ in range(trials)]
     random_lbd = list(rng.integers(low=1, high=n, size=n))
     static_lbd_performace = pool.starmap(onell_eval, zip([onell_lambda]*trials, [n]*trials, [static_lbd]*trials, next_seeds(trials)))
@@ -130,15 +130,16 @@ def graph(n, static_multiple, dynamic_multiple, static_lbd, dynamic_lbd, pool):
     one_lbd_performace = pool.starmap(onell_eval, zip([onell_lambda]*trials, [n]*trials, [[1]*n]*trials, next_seeds(trials)))
     dynamic_theory_performace = pool.starmap(onell_eval, zip([onell_dynamic_theory]*trials, [n]*trials, [None]*trials, next_seeds(trials)))
     five_param_performace = pool.starmap(onell_eval, zip([onell_dynamic_5params]*trials, [n]*trials, [None]*trials, next_seeds(trials)))
-    with open(f"output/performace_{n}_{static_multiple}_{dynamic_multiple}.json", "w") as f:
+    with open(f"irace_output/performace_{n}_{static_multiple}_{dynamic_multiple}.json", "w") as f:
       json.dump((static_lbd_performace, dynamic_lbd_performace, random_lbd_performace, random_lbd_same_performace, one_lbd_performace, dynamic_theory_performace, five_param_performace), f)
   else:
-    with open(f"output/performace_{n}_{static_multiple}_{dynamic_multiple}.json") as f:
+    with open(f"irace_output/performace_{n}_{static_multiple}_{dynamic_multiple}.json") as f:
       static_lbd_performace, dynamic_lbd_performace, random_lbd_performace, random_lbd_same_performace, one_lbd_performace, dynamic_theory_performace, five_param_performace = json.load(f)
+  print("got here")
   figure, ax = plt.subplots(figsize=(12,5))
   figure.subplots_adjust(left=0.25)
   ax.boxplot((static_lbd_performace, dynamic_lbd_performace, random_lbd_performace, random_lbd_same_performace, one_lbd_performace, dynamic_theory_performace, five_param_performace), labels=(f"Static Lambda (lbd={5})", "Dynamic Lambda", "Random Lambda (Lambda changes)", "Random Lambda (Lambda fixed)", "Lambda = 1", "Dynamic Theory", "Five Parameters"), vert=False)
-  figure.savefig(f'output/box_plot_{n}_{static_multiple}_{dynamic_multiple}.png', dpi=300)
+  figure.savefig(f"irace_output/box_plot_{n}_{static_multiple}_{dynamic_multiple}.svg")
   
 
 def main():

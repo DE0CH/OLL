@@ -1,7 +1,7 @@
 import logging
 from threading import Thread
 
-logging.basicConfig(level=logging.ERROR)
+logging.basicConfig(level=logging.INFO)
 
 import numpy as np
 import os
@@ -153,6 +153,7 @@ def find_best_performances_i(performancess):
   return np.argmin(np.mean(performancess, axis=1))
 
 def main(i):
+  logging.info(f"config: i = {i}, size = {sizes[i]}, experiment_multiple_dynamic = {experiment_multiples_dynamic[i]}, experiment_multiple_static = {experiment_multiples_static[i]}, smac_instances = {smac_instances}")
   pool = Pool(threads)
   tpool = ThreadPool()
   Path("smac_output").mkdir(exist_ok=True, parents=True)

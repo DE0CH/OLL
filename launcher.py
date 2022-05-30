@@ -135,11 +135,10 @@ def graph(n, static_multiple, dynamic_multiple, static_lbd, dynamic_lbd, pool):
   else:
     with open(f"irace_output/performace_{n}_{static_multiple}_{dynamic_multiple}.json") as f:
       static_lbd_performace, dynamic_lbd_performace, random_lbd_performace, random_lbd_same_performace, one_lbd_performace, dynamic_theory_performace, five_param_performace = json.load(f)
-  print("got here")
   figure, ax = plt.subplots(figsize=(12,5))
   figure.subplots_adjust(left=0.25)
   ax.boxplot((static_lbd_performace, dynamic_lbd_performace, random_lbd_performace, random_lbd_same_performace, one_lbd_performace, dynamic_theory_performace, five_param_performace), labels=(f"Static Lambda (lbd={5})", "Dynamic Lambda", "Random Lambda (Lambda changes)", "Random Lambda (Lambda fixed)", "Lambda = 1", "Dynamic Theory", "Five Parameters"), vert=False)
-  figure.savefig(f"irace_output/box_plot_{n}_{static_multiple}_{dynamic_multiple}.svg")
+  figure.savefig(f"irace_output/box_plot_{n}_{static_multiple}_{dynamic_multiple}.pdf")
   
 
 def main():

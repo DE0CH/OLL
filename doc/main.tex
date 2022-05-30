@@ -50,6 +50,7 @@
 \newcommand{\opl}{$(1+\lambda)$~EA\xspace}
 \newcommand{\mpoea}{$(\mu+1)$~EA\xspace}
 \newcommand{\opll}{$(1+(\lambda,\lambda))$~GA\xspace}
+\DeclarePairedDelimiter{\nint}\lfloor\rfloor
 
 
 \newcommand{\moga}{$(\mu +1)$~GA\xspace}
@@ -90,19 +91,16 @@ This is an intern project with Deyao Chen (dc262@st-andrews.ac.uk) at the Univer
 \textbf{Optimization:}
 \For{$t=1,2,3,\ldots$}{
 %%%%
-\lambda \leftarrow p(f(x)) \\
-\underline{\textbf{Mutation phase:}}\\
-\Indp
-	Sample $\ell$ from $\Bin_{>0}(n,p=\lambda/n)$\;
-	\lFor{$i=1, \ldots, \lambda=\nint(\lambda)$}{$x^{(i)} \assign \mut_{\ell}(x)$}
-	Choose $x' \in \{x^{(1)}, \ldots, x^{(\lambda)}\}$ with $f(x')=\max\{f(x^{(1)}), \ldots, f(x^{(\lambda_1)})\}$ u.a.r.\;
-\Indm
+    $\lambda \leftarrow p(f(x))$ \\
+    \underline{\textbf{Mutation phase:}}\\
+    \Indp
+    	Sample $\ell$ from $Bin_{>0}(n,p=\lambda/n)$\;
+    	\lFor{$i=1, \ldots, \nint{\lambda}$}{$x^{(i)} \assign mutation_{\ell}(x)$}
+    	Choose $x' \in \{x^{(1)}, \ldots, x^{(\lambda)}\}$ with $f(x')=\max\{f(x^{(1)}), \ldots, f(x^{(\lambda_1)})\}$ u.a.r.\;
+    \Indm
 \underline{\textbf{Crossover phase:}}\\
 \Indp
-\lFor{$i=1, \ldots, \lambda_2=\nint(\lambda)$}{$y^{(i)} \assign \cross_{c=\lambda}(x,x')$}
-%If exists, choose $y \in \{y^{(1)}, \ldots, y^{(\lambda)}\} \setminus \{x\}$ 
-%with 
-%$f(y)=\max\{f(y^{(1)}), \ldots, f(y^{(\lambda)})\}$ u.a.r.; otherwise $y \assign x$\;
+\lFor{$i=1, \ldots, \nint{\lambda}$}{$y^{(i)} \assign crossover_{c=\lambda}(x,x')$}
 Choose $y \in \{x',y^{(1)}, \ldots, y^{(\lambda)}\}$ with $f(y)=\max\{f(x'),f(y^{(1)}), \ldots, f(y^{(\lambda)})\}$ u.a.r.\;
 \Indm
 \underline{\textbf{Selection and update step:}}\\
@@ -110,11 +108,11 @@ Choose $y \in \{x',y^{(1)}, \ldots, y^{(\lambda)}\}$ with $f(y)=\max\{f(x'),f(y^
 \lIf{$f(y)>f(x)$}{
 $x \assign y$; }
 \Indm
-}%t=1,...
+}
 \caption{The \opll algorithm with one dynamic parameter to be controlled ($\lambda$). Input is a policy $p$ that maps each $f(x)$ value to the corresponding $\lambda$.}
 \label{alg:onell}
 \end{algorithm2e}
-\fi
+
 
 \section{Experiments}
 
@@ -134,6 +132,7 @@ The following baselines are used for the comparisons:
 \end{itemize}
 
 \subsection{Results with \irace}
+
 
 \subsection{Results with \smac}
 

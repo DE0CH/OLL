@@ -13,6 +13,8 @@ import socket
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 dotenv.load_dotenv()
 
+import config
+
 
 def run(i, machine):
   dir_path = os.path.dirname(__file__)
@@ -35,7 +37,11 @@ def run(i, machine):
 if __name__ == '__main__':
   logging.info("starting")
   tpool = multiprocessing.pool.ThreadPool()
-  machine = multiprocessing.Value('i', 70)
+  if config.SMALL == 'smaller':
+    start_machine = 60
+  else: 
+    start_machine = 70
+  machine = multiprocessing.Value('i', start_machine)
   for i in range(config.N):
     tpool.apply_async(run, args=(i, machine))
   tpool.close()

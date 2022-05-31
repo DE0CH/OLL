@@ -41,6 +41,8 @@
 \usepackage[algo2e,ruled,vlined,linesnumbered]{algorithm2e}
 \usepackage{url}
 
+\graphicspath{ {./images/} }
+
 \newcommand{\tool}{\textsc{{IOHprofiler}}\xspace}
 \newcommand{\ioh}{iterative optimization heuristic\xspace}
 
@@ -119,8 +121,8 @@ $x \assign y$; }
 \subsection{Experiment setting}
 We consider 5 problem sizes: $n \in \{50,100,200,500,1000\}$ and two tuning settings:
 \begin{itemize}
-    \item static-$\lambda$: $\lambda$ is fixed for the whole run of \opll. Tuning budget for this setting is [***].
-    \item dynamic-$\lambda$: we search for a policy $p$ that maps each $f(x)$ to a specific $\lambda$. In other words, the number of parameters to be tuned is equal to the problem size $n$. Tuning budget for this setting is [***].
+    \item static-$\lambda$: $\lambda$ is fixed for the whole run of \opll. The tuning budget for this is 1 million or $n$ (the length of the bit string) multipied by $10000$, whichever is smaller.
+    \item dynamic-$\lambda$: we search for a policy $p$ that maps each $f(x)$ to a specific $\lambda$. In other words, the number of parameters to be tuned is equal to the problem size $n$. Tuning budget for this setting is $n$ (the length of the big string) multiplied by 100.
 \end{itemize}
 
 The following baselines are used for the comparisons:
@@ -133,6 +135,47 @@ The following baselines are used for the comparisons:
 
 \subsection{Results with \irace}
 
+\begin{figure}[ht]
+    \centering
+        \includegraphics[width=1.0\textwidth]{box_plot_10_100_10000.pdf}
+        \caption{The performance comparison for $n = 10$ and a tuning budget of $100000$ for dynamic-$\lambda$ and $1000$ for static-$\lambda$}
+        \label{box_plot_10_100_10000}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+        \includegraphics[width=1.0\textwidth]{box_plot_50_100_10000.pdf}
+        \caption{The performance comparison for $n = 50$ and a tuning budget of $500000$ for dynamic-$\lambda$ and $5000$ for static-$\lambda$}
+        \label{box_plot_50_100_10000}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+        \includegraphics[width=1.0\textwidth]{box_plot_100_100_10000.pdf}
+        \caption{The performance comparison for $n = 100$ and a tuning budget of $1000000$ for dynamic-$\lambda$ and $10000$ for static-$\lambda$}
+        \label{box_plot_100_100_10000}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+        \includegraphics[width=1.0\textwidth]{box_plot_200_100_5000.pdf}
+        \caption{The performance comparison for $n = 200$ and a tuning budget of $1000000$ for dynamic-$\lambda$ and $20000$ for static-$\lambda$}
+        \label{box_plot_200_100_5000}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+        \includegraphics[width=1.0\textwidth]{box_plot_500_100_2000.pdf}
+        \caption{The performance comparison for $n = 500$ and a tuning budget of $1000000$ for dynamic-$\lambda$ and $50000$ for static-$\lambda$}
+        \label{box_plot_500_100_2000}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+        \includegraphics[width=1.0\textwidth]{box_plot_1000_100_1000.pdf}
+        \caption{The performance comparison for $n = 1000$ and a tuning budget of $1000000$ for dynamic-$\lambda$ and $100000$ for static-$\lambda$}
+        \label{box_plot_1000_100_1000}
+\end{figure}
 
 \subsection{Results with \smac}
 

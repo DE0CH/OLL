@@ -302,3 +302,6 @@ TSWLatexianTemp*
 
 *.pdf
 *.loc
+
+!/images/
+!/images/*

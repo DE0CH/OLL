@@ -102,7 +102,5 @@ venv
 parameters.txt
 Instances/
 scenario.txt
-.env 
-output/
-irace_output/
+.env
 smac_output

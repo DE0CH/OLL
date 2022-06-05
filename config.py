@@ -38,15 +38,6 @@ if SMALL == "small":
     10,
     10
   ]
-elif SMALL == "smaller":
-  experiment_multiples_dynamic = [
-    10**4, 
-    10**4,
-    10**4,
-    5000,
-    2000,
-    1000,
-  ] 
 elif SMALL == "xsmall":
   experiment_multiples_dynamic = [
     10, 
@@ -54,12 +45,12 @@ elif SMALL == "xsmall":
   ]
 else:
   experiment_multiples_dynamic = [
-    10**5, 
-    10**5,
-    10**5,
-    50000,
-    20000,
-    10000,
+    10**4, 
+    10**4,
+    10**4,
+    5000,
+    2000,
+    1000,
   ] 
 
 if SMALL=="small":

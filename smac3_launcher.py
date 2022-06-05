@@ -53,7 +53,8 @@ class SmacCaller:
       "ta_run_limit": self.size*self.experiment_multiple,  # max. number of function calls
       "cs": self.cs,  # configuration space
       "deterministic": "false",
-      "output_dir": os.path.join(self.output_dir, f"{self.type_name}_{self.size}_{self.experiment_multiple}")
+      "output_dir": os.path.join(self.output_dir, f"{self.type_name}_{self.size}_{self.experiment_multiple}"), 
+      "wallclock_limit": 342000
     })
     self.smac = SMAC4AC(
       scenario=self.scenario,

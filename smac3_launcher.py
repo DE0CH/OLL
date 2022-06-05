@@ -54,7 +54,7 @@ class SmacCaller:
       "cs": self.cs,  # configuration space
       "deterministic": "false",
       "output_dir": os.path.join(self.output_dir, f"{self.type_name}_{self.size}_{self.experiment_multiple}"), 
-      "wallclock_limit": 342000
+      "wallclock_limit": 338400
     })
     self.smac = SMAC4AC(
       scenario=self.scenario,

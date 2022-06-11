@@ -1,7 +1,7 @@
 import logging
 from threading import Thread
 
-logging.basicConfig(level=logging.ERROR)
+logging.basicConfig(level=logging.INFO)
 
 import numpy as np
 import os
@@ -53,7 +53,8 @@ class SmacCaller:
       "ta_run_limit": self.size*self.experiment_multiple,  # max. number of function calls
       "cs": self.cs,  # configuration space
       "deterministic": "false",
-      "output_dir": os.path.join(self.output_dir, f"{self.type_name}_{self.size}_{self.experiment_multiple}")
+      "output_dir": os.path.join(self.output_dir, f"{self.type_name}_{self.size}_{self.experiment_multiple}"), 
+      "wallclock_limit": 338400
     })
     self.smac = SMAC4AC(
       scenario=self.scenario,
@@ -153,6 +154,7 @@ def find_best_performances_i(performancess):
   return np.argmin(np.mean(performancess, axis=1))
 
 def main(i):
+  logging.info(f"config: i = {i}, size = {sizes[i]}, experiment_multiple_dynamic = {experiment_multiples_dynamic[i]}, experiment_multiple_static = {experiment_multiples_static[i]}, smac_instances = {smac_instances}")
   pool = Pool(threads)
   tpool = ThreadPool()
   Path("smac_output").mkdir(exist_ok=True, parents=True)

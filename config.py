@@ -19,6 +19,8 @@ threads = int(multiprocessing.cpu_count() * 1.5)
 smac_instances = 36
 seed = 16950281577708742744
 seed_small = 2213319694
+descend_rate = 1.5
+first_bin_portion = 1-(1/descend_rate)
 
 sizes = [
   10, 
@@ -45,12 +47,12 @@ elif SMALL == "xsmall":
   ]
 else:
   experiment_multiples_dynamic = [
-    10**5, 
-    10**5,
-    10**5,
-    50000,
-    20000,
-    10000,
+    10**4, 
+    10**4,
+    10**4,
+    5000,
+    2000,
+    1000,
   ] 
 
 if SMALL=="small":

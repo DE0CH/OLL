@@ -70,6 +70,7 @@ class SmacCaller:
         self.best_config = json.load(f)
     except (FileNotFoundError, json.decoder.JSONDecodeError):
       self.config()
+      logging.info("Finished Config")
       self.best_config_dict = self.smac.optimize().get_dictionary()
       self.parse_result()
     with open(self.best_config_file_path, "w") as f:
@@ -116,7 +117,7 @@ class SCDynamicBin(SmacCaller):
     self.bins = []
     self.bin_lookup = []
     remaining = size
-    bin_size = int(size / first_bin_portion)
+    bin_size = int(size * first_bin_portion)
     i = 0
     while remaining:
       self.bins.append(bin_size)
@@ -127,7 +128,7 @@ class SCDynamicBin(SmacCaller):
       if bin_size < 1:
         bin_size = 1
       i += 1
-    super().__init__("dynamic_bin", size, experiment_multiple / size * len(self.bins), seed)
+    super().__init__("dynamic_bin", size, experiment_multiple, seed)
 
   def config(self):
     def runner(x, seed=0):
@@ -175,20 +176,20 @@ def find_performancess(size, runs, seeds, pool):
     for best_config in runs.get()
   ]
 
-def graph(json_path, png_path, dynamic_lbd_performance, dynamic_lbd_bin_performance, static_lbd_performance, random_lbd_performance, one_lbd_performance, dynamic_theory_performance, dynamic_5params_performance):
-  data = (dynamic_lbd_performance, dynamic_lbd_bin_performance, static_lbd_performance, random_lbd_performance, one_lbd_performance, dynamic_theory_performance, dynamic_5params_performance)
+def graph(json_path, png_path, dynamic_lbd_performance, dynamic_lbd_bin_performance, static_lbd_performance, random_dynamic_lbd_performance, random_static_lbd_performance, one_lbd_performance, dynamic_theory_performance, dynamic_5params_performance):
+  data = (dynamic_lbd_performance, dynamic_lbd_bin_performance, static_lbd_performance, random_dynamic_lbd_performance, random_static_lbd_performance, one_lbd_performance, dynamic_theory_performance, dynamic_5params_performance)
   with open(json_path, 'w') as f:
     json.dump(data, f)
   figure, ax = plt.subplots(figsize=(12,5))
   figure.subplots_adjust(left=0.25)
-  ax.boxplot(data, labels=("Dynamic Lambda", "Dynamic Lambda with binning", "Static Lambda", "Random Lambda", "Lambda = 1", "Dynamic Theory", "Five Parameters"), vert=False)
+  ax.boxplot(data, labels=("Dynamic Lambda", "Dynamic Lambda with binning", "Static Lambda", "Random Dynamic Lambda", "Random Static Lambda", "Lambda = 1", "Dynamic Theory", "Five Parameters"), vert=False)
   figure.savefig(png_path, dpi=300)
   
 def find_best_performances_i(performancess):
   performancess = [performances.get() for performances in performancess.get()]
   return np.argmin(np.mean(performancess, axis=1))
 
-def main(i, binning):
+def main(i):
   logging.info(f"config: i = {i}, size = {sizes[i]}, experiment_multiple_dynamic = {experiment_multiples_dynamic[i]}, experiment_multiple_static = {experiment_multiples_static[i]}, smac_instances = {smac_instances}")
   pool = Pool(threads)
   tpool = ThreadPool()
@@ -224,7 +225,8 @@ def main(i, binning):
   best_performances_dynamic_bin_i = tpool.apply_async(find_best_performances_i, (performancess_dynamic_bin, ))
   best_performances_static_i = tpool.apply_async(find_best_performances_i, (performancess_static, ))
   
-  random_lbd_performance = pool.starmap_async(onell_lambda_positional, zip([sizes[i]]*trials, [list(rng.integers(1, sizes[i], sizes[i])) for _ in range(trials)], rng.integers(1<<15, (1<<16)-1, trials))) 
+  random_dynamic_lbd_performance = pool.starmap_async(onell_lambda_positional, zip([sizes[i]]*trials, [list(rng.integers(1, sizes[i], sizes[i])) for _ in range(trials)], rng.integers(1<<15, (1<<16)-1, trials))) 
+  random_static_lbd_performance = pool.starmap_async(onell_lambda_positional, zip([sizes[i]]*trials, [[rng.integers(1, sizes[i])]*sizes[i] for _ in range(trials)], rng.integers(1<<15, (1<<16)-1, trials)))  
   one_ldb_performance = pool.starmap_async(onell_lambda_positional, zip([sizes[i]]*trials, [[1]*sizes[i]]*trials, rng.integers(1<<15, (1<<16)-1, trials)))
   dynamic_theory_performance = pool.starmap_async(onell_dynamic_theory_positional, zip([sizes[i]]*trials, rng.integers(1<<15, (1<<16)-1, trials)))
   dynamic_5params_performance = pool.starmap_async(onell_dynamic_5params_positional, zip([sizes[i]]*trials, rng.integers(1<<15, (1<<16)-1, trials)))
@@ -232,13 +234,15 @@ def main(i, binning):
   # Can wait for everything from here
   with open(os.path.join("smac_output", f"i_{sizes[i]}_{experiment_multiples_dynamic[i]}_{experiment_multiples_static[i]}.json"), 'w') as f:
     json.dump([dynamic_runs.get()[best_performances_dynamic_i.get()], static_runs.get()[best_performances_static_i.get()]], f)
+  
   graph(
     os.path.join("smac_output", f"performance_{sizes[i]}_{experiment_multiples_dynamic[i]}_{experiment_multiples_static[i]}.json"),
     os.path.join("smac_output", f"performance_{sizes[i]}_{experiment_multiples_dynamic[i]}_{experiment_multiples_static[i]}.png"),
     performancess_dynamic.get()[best_performances_dynamic_i.get()].get(),
     performancess_dynamic_bin.get()[best_performances_dynamic_bin_i.get()].get(),
     performancess_static.get()[best_performances_static_i.get()].get(),
-    random_lbd_performance.get(),
+    random_dynamic_lbd_performance.get(),
+    random_static_lbd_performance.get(),
     one_ldb_performance.get(),
     dynamic_theory_performance.get(),
     dynamic_5params_performance.get(),
@@ -257,5 +261,4 @@ if __name__ == "__main__":
   parser.add_argument("i", type=int)
   parser.add_argument("--binning", action="store_true")
   args = parser.parse_args()
-  print(args.binning)
-  exit(main(args.i, args.binning))
+  exit(main(args.i))

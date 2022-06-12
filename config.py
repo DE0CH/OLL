@@ -19,6 +19,8 @@ threads = int(multiprocessing.cpu_count() * 1.5)
 smac_instances = 36
 seed = 16950281577708742744
 seed_small = 2213319694
+descend_rate = 1.5
+first_bin_portion = 1-(1/descend_rate)
 
 sizes = [
   10, 

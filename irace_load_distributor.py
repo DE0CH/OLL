@@ -24,7 +24,10 @@ def run_job(s):
   while not success:
     with lock:
       i = current_computer
-      current_computer += 1
+      if current_computer < 79:
+        current_computer += 1
+      else:
+        current_computer = 1
     name = f"pc8-{i:03d}-l"
     pathlib.Path("logs").mkdir(parents=True, exist_ok=True)
 

@@ -35,13 +35,13 @@ def run_job(s):
     if not success:
       print(f"connection to {name} timed out, retrying the next machine")
     else:
-      subprocess.run(['rsync', '-azvPI', '--delete', './', f'{name}:$HOME/OLL'], stdout=os.devnull)
+      subprocess.run(['rsync', '-azvPI', '--delete', './', f'{name}:$HOME/OLL'], stdout=subprocess.DEVNULL)
       with open(f"logs/{name}_stdout.log", "wb") as stdoutf:
         with open(f"logs/{name}_stderr.log", "wb") as stderrf:
           print(f"Running {s} on {name}")
           subprocess.run(['ssh', name, s], stdout=stdoutf, stderr=stderrf)
           print(f"Finished running on {name}") 
-      subprocess.run(['rsync', '-azvP', f'{name}:$HOME/OLL/', '.'], stdout=os.devnull)
+      subprocess.run(['rsync', '-azvP', f'{name}:$HOME/OLL/', '.'], stdout=subprocess.DEVNULL)
       
 def run_full(i, dynamic_seed, dynamic_bin_seed, static_seed, grapher_seed):
   dynamic_run = Thread(target=run_job, args=(f'python3 irace_dynamic.py {i} {dynamic_seed}',))

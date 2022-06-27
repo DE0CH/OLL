@@ -13,7 +13,7 @@ rng = numpy.random.default_rng(seed)
 mock = False 
 
 def run_job(s):
-  s = f'docker build -t irace . && docker run --rm -it {"--env SMALL="+os.getenv("SMALL") + " " if os.getenv("SMALL") else ""}-v $HOME/OLL:/usr/app irace ' + s
+  s = f'docker build -t irace . && docker run --rm {"--env SMALL="+os.getenv("SMALL") + " " if os.getenv("SMALL") else ""}-v $HOME/OLL:/usr/app irace ' + s
   if mock:
     print(f"running {s}")
     subprocess.run(s, shell=True, capture_output=True)
@@ -35,7 +35,7 @@ def run_job(s):
     if not success:
       print(f"connection to {name} timed out, retrying the next machine")
     else:
-      subprocess.run(['rsync', '-azvPI', '--delete', './', f'{name}:$HOME/OLL'], stdout=subprocess.DEVNULL)
+      subprocess.run(['rsync', '-azvPI', '--delete', '$HOME/OLL/', f'{name}:$HOME/OLL'], stdout=subprocess.DEVNULL)
       with open(f"logs/{name}_stdout.log", "wb") as stdoutf:
         with open(f"logs/{name}_stderr.log", "wb") as stderrf:
           print(f"Running {s} on {name}")

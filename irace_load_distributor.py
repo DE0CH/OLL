@@ -13,7 +13,7 @@ rng = numpy.random.default_rng(seed)
 mock = False 
 
 def run_job(s):
-  s = f'docker build -t irace . && docker run --rm {"--env SMALL="+os.getenv("SMALL") + " " if os.getenv("SMALL") else ""}-v $HOME/OLL:/usr/app irace ' + s
+  s = f'docker build -t irace . && docker run --rm {"--env SMALL="+os.getenv("SMALL") + " " if os.getenv("SMALL") else ""}-v /home/dc262/OLL:/usr/app irace ' + s
   if mock:
     print(f"running {s}")
     subprocess.run(s, shell=True, capture_output=True)
@@ -38,13 +38,13 @@ def run_job(s):
     if not success:
       print(f"connection to {name} timed out, retrying the next machine")
     else:
-      subprocess.run(['rsync', '-azvPI', '--delete', '$HOME/OLL/', f'{name}:$HOME/OLL'], stdout=subprocess.DEVNULL)
+      subprocess.run(['rsync', '-azvPI', '--delete', '/home/dc262/OLL/', f'{name}:/home/dc262/OLL'], stdout=subprocess.DEVNULL)
       with open(f"logs/{name}_stdout.log", "wb") as stdoutf:
         with open(f"logs/{name}_stderr.log", "wb") as stderrf:
           print(f"Running {s} on {name}")
-          subprocess.run(['ssh', name, "cd $HOME/OLL && " + s], stdout=stdoutf, stderr=stderrf)
+          subprocess.run(['ssh', name, "cd /home/dc262/OLL && " + s], stdout=stdoutf, stderr=stderrf)
           print(f"Finished running on {name}") 
-      subprocess.run(['rsync', '-azvP', f'{name}:$HOME/OLL/', '.'], stdout=subprocess.DEVNULL)
+      subprocess.run(['rsync', '-azvP', f'{name}:/home/dc262/OLL/', '.'], stdout=subprocess.DEVNULL)
       
 def run_full(i, dynamic_seed, dynamic_bin_seed, static_seed, grapher_seed):
   dynamic_run = Thread(target=run_job, args=(f'python3 irace_dynamic.py {i} {dynamic_seed}',))

@@ -39,7 +39,7 @@ def run_job(s):
       with open(f"logs/{name}_stdout.log", "wb") as stdoutf:
         with open(f"logs/{name}_stderr.log", "wb") as stderrf:
           print(f"Running {s} on {name}")
-          subprocess.run(['ssh', name, "cd OLL && " + s], stdout=stdoutf, stderr=stderrf)
+          subprocess.run(['ssh', name, "cd $HOME/OLL && " + s], stdout=stdoutf, stderr=stderrf)
           print(f"Finished running on {name}") 
       subprocess.run(['rsync', '-azvP', f'{name}:$HOME/OLL/', '.'], stdout=subprocess.DEVNULL)
       

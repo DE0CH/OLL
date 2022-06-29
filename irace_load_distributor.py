@@ -13,7 +13,7 @@ rng = numpy.random.default_rng(seed)
 mock = False 
 
 def run_job(s):
-  s = f'docker build -t irace . && docker run --rm {"--env SMALL="+os.getenv("SMALL") + " " if os.getenv("SMALL") else ""}-v /home/dc262/OLL:/usr/app irace ' + s
+  s = f'docker build -t irace . && docker run --rm {("--env SMALL="+os.getenv("SMALL") + " ") if os.getenv("SMALL") else ""}-v {"/home/dc262" if not mock else os.getcwd()}:/usr/app irace ' + s
   if mock:
     print(f"running {s}")
     subprocess.run(s, shell=True, capture_output=True)

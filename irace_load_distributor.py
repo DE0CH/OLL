@@ -26,7 +26,7 @@ def run_job(s):
     subprocess.run(s, shell=True, capture_output=True)
     return
 
-  s = f'docker build -t irace . && docker run --rm {("--env SMALL="+os.getenv("SMALL") + " ") if os.getenv("SMALL") else ""}-v {"/home/dc262" if not mock_docker else os.getcwd()}:/usr/app irace ' + s
+  s = f'docker build -t irace . && docker run --rm {("--env SMALL="+os.getenv("SMALL") + " ") if os.getenv("SMALL") else ""}-v {"/home/dc262/OLL" if not mock_docker else os.getcwd()}:/usr/app irace ' + s
   if mock_docker:
     print(f"running {s}")
     subprocess.run(s, shell=True, capture_output=True)

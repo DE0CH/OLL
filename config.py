@@ -17,13 +17,19 @@ elif SMALL == "xsmall":
 else:
   N = 8
 
+if SMALL == "small":
+  M = 3
+else:
+  M = 11
+
 trials = 500 
 threads = int(multiprocessing.cpu_count() * 1.5)
 smac_instances = 36
 seed = 16950281577708742744
 seed_small = 2213319694
-descend_rate = 2
-first_bin_portion = 1-(1/descend_rate)
+descent_rate = 2
+
+descent_rates = [1.5 + (i*(1/(M-1))) for i in range(M)] 
 
 sizes = [
   10, 
@@ -69,18 +75,23 @@ elif SMALL=="xsmall":
 else: 
   experiment_multiples_static = [100] * N
 
-def get_bins(size):
+experiment_multiples_dynamic_bin = experiment_multiples_dynamic
+
+def get_bins(size, descent_rate=descent_rate):
   bins = []
   bin_lookup = []
   remaining = size
+  first_bin_portion = 1-(1/descent_rate)
   bin_size = int(size * first_bin_portion)
+  if bin_size < 1 :
+    bin_size = 1
   i = 0
   while remaining:
     bins.append(bin_size)
     remaining -= bin_size
     for _ in range(bin_size):
       bin_lookup.append(i)
-    bin_size = int(bin_size / descend_rate)
+    bin_size = int(bin_size / descent_rate)
     if bin_size < 1:
       bin_size = 1
     i += 1

@@ -69,7 +69,6 @@ class IraceCaller:
       f.write(f"firstTest = 10\n")
 
   def call_and_record(self): 
-    print(self.parameters_file)
     output_f = open(f"irace_output/{self.output_file}.progress", 'w') 
     process = subprocess.Popen([self.irace_bin_path, 
       "--parallel", str(threads), 

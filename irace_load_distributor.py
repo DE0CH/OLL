@@ -70,7 +70,8 @@ def run_binning_comparison_full(i, tuner_seeds, grapher_seeds):
     run.start()
   for run in tuning_runs:
     run.join()
-  grapher_run = Thread(target=run_job, args=(f'python3 irace_grapher_binning_comparison.py {i} {" ".join(tuner_seeds)} {" ".join(grapher_seeds)}', ))
+  
+  grapher_run = Thread(target=run_job, args=(f'python3 irace_grapher_binning_comparison.py {i} {" ".join(map(str, tuner_seeds))} {" ".join(map(str, grapher_seeds))}', ))
   grapher_run.start()
   grapher_run.join()
 

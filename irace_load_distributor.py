@@ -7,6 +7,7 @@ import numpy
 import argparse
 import os
 from enum import Enum 
+from uuid import uuid4
 
 current_computer = 1
 lock = threading.Lock()
@@ -21,17 +22,18 @@ class JobType(Enum):
     return self.value
 
 def run_job(s):
+
   if mock:
     print(f"running {s}")
     subprocess.run(s, shell=True, capture_output=True)
     return
 
-  s = f'docker build -t irace . && docker run --rm {("--env SMALL="+os.getenv("SMALL") + " ") if os.getenv("SMALL") else ""}-v {"/home/dc262/OLL" if not mock_docker else os.getcwd()}:/usr/app irace ' + s
+  tmp_dir_name = f"/home/dc262/.posco/{str(uuid4())}"
+  s = f'docker build -t irace . && docker run --rm {("--env SMALL="+os.getenv("SMALL") + " ") if os.getenv("SMALL") else ""}-v {tmp_dir_name if not mock_docker else os.getcwd()}:/usr/app irace ' + s
   if mock_docker:
     print(f"running {s}")
     subprocess.run(s, shell=True, capture_output=True)
     return
-  # This is very ad hoc, not a general and reusable function at all, but too lazy to fix it
   success = False 
   global current_computer
   while not success:
@@ -51,13 +53,13 @@ def run_job(s):
     if not success:
       print(f"connection to {name} timed out, retrying the next machine")
     else:
-      subprocess.run(['rsync', '-azvPI', '--delete', '/home/dc262/OLL/', f'{name}:/home/dc262/OLL'], stdout=subprocess.DEVNULL)
+      subprocess.run(['rsync', '-azvPI', '--delete', f"{os.getcwd()}/", f'{name}:{tmp_dir_name}'], stdout=subprocess.DEVNULL)
       with open(f"logs/{name}_stdout.log", "wb") as stdoutf:
         with open(f"logs/{name}_stderr.log", "wb") as stderrf:
           print(f"Running {s} on {name}")
-          subprocess.run(['ssh', name, "cd /home/dc262/OLL && " + s], stdout=stdoutf, stderr=stderrf)
+          subprocess.run(['ssh', name, f"cd {tmp_dir_name} && " + s], stdout=stdoutf, stderr=stderrf)
           print(f"Finished running on {name}") 
-      subprocess.run(['rsync', '-azvP', f'{name}:/home/dc262/OLL/', '.'], stdout=subprocess.DEVNULL)
+      subprocess.run(['rsync', '-azvP', f'{name}:{tmp_dir_name}/', '.'], stdout=subprocess.DEVNULL)
 
 def run_binning_comparison_single(i, j, tuner_seed, grapher_seed):
   tuning_run = Thread(target=run_job, args=(f'python3 irace_binning_comparison.py {i} {j} {tuner_seed} {grapher_seed}',))

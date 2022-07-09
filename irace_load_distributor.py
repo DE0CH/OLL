@@ -53,6 +53,7 @@ def run_job(s):
     if not success:
       print(f"connection to {name} timed out, retrying the next machine")
     else:
+      subprocess.run(['ssh', name, f'mkdir -p {os.path.dirname(tmp_dir_name)}'])
       subprocess.run(['rsync', '-azvPI', '--delete', f"{os.getcwd()}/", f'{name}:{tmp_dir_name}'], stdout=subprocess.DEVNULL)
       with open(f"logs/{name}_stdout.log", "wb") as stdoutf:
         with open(f"logs/{name}_stderr.log", "wb") as stderrf:

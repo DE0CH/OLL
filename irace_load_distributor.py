@@ -24,7 +24,7 @@ class JobType(Enum):
 
 def worker(name):
   while True:
-    print("waiting for job")
+    print(f"{name} waiting for job")
     if mock:
       s, cv = job_queue.get()
       print(f"got job: {s}")
@@ -48,7 +48,7 @@ def worker(name):
     else:
       s, cv = job_queue.get()
       s = f'docker build -t irace . && docker run --rm {("--env SMALL="+os.getenv("SMALL") + " ") if os.getenv("SMALL") else ""}-v {tmp_dir_name}:/usr/app irace ' + s
-      print(f"{name} is on")
+      print(f"{name} is indeed on")
       subprocess.run(['ssh', name, f'mkdir -p {os.path.dirname(tmp_dir_name)}'])
       subprocess.run(['rsync', '-azvPI', '--delete', f"{os.getcwd()}/", f'{name}:{tmp_dir_name}'], stdout=subprocess.DEVNULL)
       with open(f"logs/{name}_stdout.log", "wb") as stdoutf:

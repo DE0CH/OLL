@@ -1,11 +1,9 @@
 import multiprocessing
 import os
-from dotenv import load_dotenv
 from onell_algs import onell_lambda, onell_dynamic_5params, onell_dynamic_theory
 import json
 from matplotlib import pyplot as plt
 
-load_dotenv()
 
 SMALL = os.getenv("SMALL", None)
 EMAIL = os.getenv("EMAIL", "false").strip() == "true"

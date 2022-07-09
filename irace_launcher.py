@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 import subprocess
-from config import N, sizes, experiment_multiples_dynamic, experiment_multiples_static, seed, threads, trials, get_bins
+from config import N, sizes, experiment_multiples_dynamic, experiment_multiples_static, seed, threads, trials, descent_rates, get_bins
 import numpy
 from multiprocessing import Pool
 from onell_algs import onell_lambda, onell_dynamic_theory, onell_dynamic_5params
@@ -46,6 +46,7 @@ class IraceCaller:
     self.parameters_file = f"irace_output/parameters_{type_name}_{size}.txt"
     self.type_name = type_name
     self.irace_bin_path = os.path.join(subprocess.check_output(['Rscript', '-e', "cat(system.file(package=\'irace\', \'bin\', mustWork=TRUE))"]).decode('utf-8'), 'irace')
+    self.instance_dir = f"Instances_{self.size}"
   
   def run(self):
     if not self.read_output:
@@ -56,7 +57,7 @@ class IraceCaller:
     self.translate()
   
   def write_parameters(self):
-    with open(f"irace_output/Instances_{self.size}/1.txt", "w") as f:
+    with open(f"irace_output/{self.instance_dir}/1.txt", "w") as f:
       f.write(f"{self.size}\n")
 
     with open(f"irace_output/scenario_{self.type_name}_{self.size}_{self.experiment_multiple}_{self.seed}.txt", "w") as f:
@@ -74,8 +75,8 @@ class IraceCaller:
       "--seed", str(self.seed), 
       "--log-file", f"{self.log_file}", 
       "--scenario", f"scenario_{self.type_name}_{self.size}_{self.experiment_multiple}_{self.seed}.txt", 
-      "--train-instances-dir", f"Instances_{self.size}",
-      "--parameter-file", f"parameters_{self.type_name}_{self.size}.txt"],
+      "--train-instances-dir", self.instance_dir,
+      "--parameter-file", os.path.basename(self.parameters_file)],
     stdout=subprocess.PIPE, cwd="irace_output")
     decoder = IraceDecoder()
     while True:
@@ -144,6 +145,34 @@ class IraceCallerDynamicBin(IraceCaller):
     for i in range(self.size):
       self.best_config[i] = lbd_bins[bin_lookup[i]]
   
+class IraceCallerBinningComparison(IraceCaller):
+  def __init__(self, size, experiment_multiple, descent_rate_j, seed):
+    type_name = "binning_comparison"
+    super().__init__(size, experiment_multiple, seed, type_name=type_name)
+    self.descent_rate_j = descent_rate_j
+    descent_rate = descent_rates[descent_rate_j]
+    self.descent_rate = descent_rate
+    self.output_file = f"irace_output_{type_name}_{size}_{experiment_multiple}_{descent_rate}_{seed}.txt"
+    self.log_file = f"irace_{type_name}_{size}_{experiment_multiple}_{descent_rate}_{seed}.Rdata"
+    self.parameters_file = f"irace_output/parameters_{type_name}_{size}_{descent_rate}.txt"
+    self.read_output = os.path.isfile(f"irace_output/{self.output_file}")
+    self.instance_dir = f"Instances_{size}_{descent_rate}"
+    self.bins, self.bin_lookup = get_bins(size, descent_rate=descent_rate)
+    Path(f"irace_output/{self.instance_dir}").mkdir(parents=True, exist_ok=True)
+  
+  def write_parameters(self):
+    with open(self.parameters_file, 'w') as f:
+      for i in range(len(self.bins)):
+        f.write(f"lbd{i} \"--lbd{i} \" i (1, {self.size-1}) \n")
+    super().write_parameters()
+    with open(f"irace_output/{self.instance_dir}/1.txt", "a") as f:
+      f.write(f"{self.descent_rate_j}\n")
+
+  def translate(self):
+    lbd_bins = self.best_config.copy()
+    self.best_config = [1] * self.size
+    for i in range(self.size):
+      self.best_config[i] = lbd_bins[self.bin_lookup[i]]
 
 def onell_eval(f, n, lbds, seed):
     if lbds:

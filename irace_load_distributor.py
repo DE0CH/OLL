@@ -2,19 +2,32 @@ import subprocess
 import threading
 from threading import Thread
 import pathlib
-from config import seed, N
+from config import seed, N, M
 import numpy
 import argparse
 import os
+from enum import Enum 
 
 current_computer = 1
 lock = threading.Lock()
 rng = numpy.random.default_rng(seed)
-mock = False 
+mock_docker = False 
+mock = False
+
+class JobType(Enum):
+  baseline = 'baseline'
+  binning = 'binning'
+  def __str__(self):
+    return self.value
 
 def run_job(s):
-  s = f'docker build -t irace . && docker run --rm {("--env SMALL="+os.getenv("SMALL") + " ") if os.getenv("SMALL") else ""}-v {"/home/dc262" if not mock else os.getcwd()}:/usr/app irace ' + s
   if mock:
+    print(f"running {s}")
+    subprocess.run(s, shell=True, capture_output=True)
+    return
+
+  s = f'docker build -t irace . && docker run --rm {("--env SMALL="+os.getenv("SMALL") + " ") if os.getenv("SMALL") else ""}-v {"/home/dc262" if not mock_docker else os.getcwd()}:/usr/app irace ' + s
+  if mock_docker:
     print(f"running {s}")
     subprocess.run(s, shell=True, capture_output=True)
     return
@@ -45,8 +58,25 @@ def run_job(s):
           subprocess.run(['ssh', name, "cd /home/dc262/OLL && " + s], stdout=stdoutf, stderr=stderrf)
           print(f"Finished running on {name}") 
       subprocess.run(['rsync', '-azvP', f'{name}:/home/dc262/OLL/', '.'], stdout=subprocess.DEVNULL)
-      
-def run_full(i, dynamic_seed, dynamic_bin_seed, static_seed, grapher_seed):
+
+def run_binning_comparison_single(i, j, tuner_seed, grapher_seed):
+  tuning_run = Thread(target=run_job, args=(f'python3 irace_binning_comparison.py {i} {j} {tuner_seed} {grapher_seed}',))
+  tuning_run.start()
+  tuning_run.join()
+
+def run_binning_comparison_full(i, tuner_seeds, grapher_seeds):
+  tuning_runs = [Thread(target=run_binning_comparison_single, args=(i, j, tuner_seeds[j], grapher_seeds[j])) for j in range(M)]
+  for run in tuning_runs:
+    run.start()
+  for run in tuning_runs:
+    run.join()
+  
+  grapher_run = Thread(target=run_job, args=(f'python3 irace_grapher_binning_comparison.py {i} {" ".join(map(str, tuner_seeds))} {" ".join(map(str, grapher_seeds))}', ))
+  grapher_run.start()
+  grapher_run.join()
+
+
+def run_baseline_full(i, dynamic_seed, dynamic_bin_seed, static_seed, grapher_seed):
   dynamic_run = Thread(target=run_job, args=(f'python3 irace_dynamic.py {i} {dynamic_seed}',))
   dynamic_bin_run = Thread(target=run_job, args=(f"python3 irace_dynamic_bin.py {i} {dynamic_bin_seed}",))
   static_run = Thread(target=run_job, args=(f"python3 irace_static.py {i} {static_seed}",))
@@ -60,8 +90,13 @@ def run_full(i, dynamic_seed, dynamic_bin_seed, static_seed, grapher_seed):
   grapher_run.start()
   grapher_run.join()
   
-def main():
-  runs = [Thread(target=run_full, args=(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1))) for i in range(N)]
+def main(job_type: JobType):
+  if job_type == JobType.baseline:
+    runs = [Thread(target=run_baseline_full, args=(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1))) for i in range(N)]
+  elif job_type == JobType.binning:
+    runs = []
+    for i in range(N):
+      runs.append(Thread(target=run_binning_comparison_full, args=(i, list(rng.integers(1<<15, (1<<16)-1, M)), list(rng.integers(1<<15, (1<<16)-1, M)))))
   for thread in runs:
     thread.start()
   for thread in runs:
@@ -69,9 +104,13 @@ def main():
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
+  parser.add_argument('job_type', type=JobType, choices=list(JobType), default=JobType.baseline, nargs='?')
+  parser.add_argument('--mock-docker', action="store_true")
   parser.add_argument('--mock', action="store_true")
   args = parser.parse_args()
+  mock_docker = args.mock_docker
   mock = args.mock
-  main()
+
+  main(args.job_type)
 
 

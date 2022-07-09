@@ -47,7 +47,7 @@ def worker(name):
       return
     else:
       s, cv = job_queue.get()
-      s = f'docker build -t irace . && docker run --rm {("--env SMALL="+os.getenv("SMALL") + " ") if os.getenv("SMALL") else ""}-v {tmp_dir_name if not mock_docker else os.getcwd()}:/usr/app irace ' + s
+      s = f'docker build -t irace . && docker run --rm {("--env SMALL="+os.getenv("SMALL") + " ") if os.getenv("SMALL") else ""}-v {tmp_dir_name}:/usr/app irace ' + s
       print(f"{name} is on")
       subprocess.run(['ssh', name, f'mkdir -p {os.path.dirname(tmp_dir_name)}'])
       subprocess.run(['rsync', '-azvPI', '--delete', f"{os.getcwd()}/", f'{name}:{tmp_dir_name}'], stdout=subprocess.DEVNULL)

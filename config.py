@@ -115,3 +115,13 @@ def graph(json_path, png_path, dynamic_lbd_performance, dynamic_lbd_bin_performa
   figure.subplots_adjust(left=0.25)
   ax.boxplot(data, labels=("Dynamic Lambda", "Dynamic Lambda with binning", "Static Lambda", "Random Dynamic Lambda", "Random Static Lambda", "Lambda = 1", "Dynamic Theory", "Five Parameters"), vert=False)
   figure.savefig(png_path, dpi=300)
+
+def get_cutoff(size):
+  if size <= 2500:
+    return 150000
+  elif 2500 < size <= 5000:
+    return 200000
+  elif 2500 < size <= 8000:
+    return 250000
+  else:
+    return 300000

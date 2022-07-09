@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 import subprocess
-from config import N, sizes, experiment_multiples_dynamic, experiment_multiples_static, seed, threads, trials, descent_rates, get_bins
+from config import N, sizes, experiment_multiples_dynamic, experiment_multiples_static, seed, threads, trials, descent_rates, get_bins, get_cutoff
 import numpy
 from multiprocessing import Pool
 from onell_algs import onell_lambda, onell_dynamic_theory, onell_dynamic_5params
@@ -73,6 +73,7 @@ class IraceCaller:
     process = subprocess.Popen([self.irace_bin_path, 
       "--parallel", str(threads), 
       "--seed", str(self.seed), 
+      "--bound-max", str(get_cutoff(self.size)),
       "--log-file", f"{self.log_file}", 
       "--scenario", f"scenario_{self.type_name}_{self.size}_{self.experiment_multiple}_{self.seed}.txt", 
       "--train-instances-dir", self.instance_dir,

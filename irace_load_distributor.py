@@ -100,7 +100,7 @@ def main(job_type: JobType):
   runs = []
   if job_type == JobType.baseline or job_type == JobType.full:
     runs += [Thread(target=run_baseline_full, args=(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1))) for i in range(N)]
-  elif job_type == JobType.binning or job_type == JobType.full:
+  if job_type == JobType.binning or job_type == JobType.full:
     for i in range(N):
       runs.append(Thread(target=run_binning_comparison_full, args=(i, list(rng.integers(1<<15, (1<<16)-1, M)), list(rng.integers(1<<15, (1<<16)-1, M)))))
   for thread in runs:

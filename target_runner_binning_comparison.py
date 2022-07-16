@@ -17,7 +17,7 @@ lbds = [1] * n
 lbd_bins = [1] * len(bins)
 for i in range(len(bins)):
   j = int(sys.argv[i*2+6].replace("--lbd", ""))
-  lbd = int(sys.argv[i*2+7])
+  lbd = float(sys.argv[i*2+7])
   lbd_bins[j] = lbd
 
 for i in range(n):

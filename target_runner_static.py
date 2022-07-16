@@ -10,7 +10,7 @@ with open(instance) as f:
     n = int(f.read())
 
 
-lbd = int(sys.argv[7])
+lbd = float(sys.argv[7])
 lbds = [lbd]*n
 
 a, b, c = onell_lambda(n, lbds=lbds, max_evals=bound, seed=seed)

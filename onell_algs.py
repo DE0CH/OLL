@@ -1,6 +1,7 @@
 import numpy as np
 from copy import deepcopy
 import time
+import math
 
 
 class BinaryProblem:
@@ -111,8 +112,8 @@ class BinaryProblem:
             return self, self.fitness, 0
 
         l = 0
-        while l==0:
-            l = rng.binomial(self.n, p)                
+        p_distribution = [0] + [math.comb(self.n, k) * p**k * (1-p)**k / (1-(1-p)**k) for k in range(1, self.n+1)]
+        l = rng.choice(range(self.n + 1), p=p_distribution)               
         
         best_obj = -1
         best_locs = None

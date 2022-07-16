@@ -1,7 +1,9 @@
 #!/usr/bin/env python3 
 
 import sys
+from typing import SupportsRound
 from onell_algs import onell_lambda
+from config import suppress_stderr
 
 seed = int(sys.argv[3])
 instance = sys.argv[4]
@@ -15,6 +17,7 @@ for i in range(n):
     lbd = float(sys.argv[i*2+7])
     lbds[j] = lbd
 
-a, b, c = onell_lambda(n, lbds=lbds, max_evals=bound, seed=seed)
+with suppress_stderr():
+    a, b, c = onell_lambda(n, lbds=lbds, max_evals=bound, seed=seed)
 print(c)
 print(c)

@@ -2,7 +2,7 @@
 
 import sys
 from onell_algs import onell_lambda
-from config import get_bins, descent_rates
+from config import get_bins, descent_rates, suppress_stderr
 
 seed = int(sys.argv[3])
 instance = sys.argv[4]
@@ -23,6 +23,7 @@ for i in range(len(bins)):
 for i in range(n):
   lbds[i] = lbd_bins[bin_lookup[i]]
 
-a, b, c = onell_lambda(n, lbds=lbds, max_evals=bound, seed=seed)
+with suppress_stderr():
+  a, b, c = onell_lambda(n, lbds=lbds, max_evals=bound, seed=seed)
 print(c)
 print(c)

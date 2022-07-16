@@ -6,7 +6,7 @@ from config import get_bins, descent_rates
 
 seed = int(sys.argv[3])
 instance = sys.argv[4]
-bound = int(sys.argv[5])
+bound = float(sys.argv[5])
 with open(instance) as f:
   n, descent_rate_j = map(int, f.read().split())
   descent_rate = descent_rates[descent_rate_j]

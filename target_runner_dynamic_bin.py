@@ -6,7 +6,7 @@ from config import get_bins
 
 seed = int(sys.argv[3])
 instance = sys.argv[4]
-bound = int(sys.argv[5])
+bound = float(sys.argv[5])
 with open(instance) as f:
   n = int(f.read())
 

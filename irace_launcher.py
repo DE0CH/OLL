@@ -111,7 +111,7 @@ class IraceCallerDynamic(IraceCaller):
   def write_parameters(self):
     with open(self.parameters_file, "w") as f:
       for i in range(self.size):
-        f.write(f"lbd{i} \"--lbd{i} \" i (1, {self.size-1}) \n")
+        f.write(f"lbd{i} \"--lbd{i} \" r (1, {self.size}) \n")
     return super().write_parameters()
 
 class IraceCallerStatic(IraceCaller):
@@ -120,7 +120,7 @@ class IraceCallerStatic(IraceCaller):
   
   def write_parameters(self):
     with open(self.parameters_file, "w") as f:
-      f.write(f"lbd \"--lbd \" i (1, {self.size-1}) \n")
+      f.write(f"lbd \"--lbd \" r (1, {self.size}) \n")
     return super().write_parameters()
   
   def translate(self):
@@ -136,7 +136,7 @@ class IraceCallerDynamicBin(IraceCaller):
     bins, bin_lookup = get_bins(self.size)
     with open(self.parameters_file, "w") as f:
       for i in range(len(bins)):
-        f.write(f"lbd{i} \"--lbd{i} \" i (1, {self.size-1}) \n")
+        f.write(f"lbd{i} \"--lbd{i} \" r (1, {self.size}) \n")
     return super().write_parameters()
   
   def translate(self):
@@ -164,7 +164,7 @@ class IraceCallerBinningComparison(IraceCaller):
   def write_parameters(self):
     with open(self.parameters_file, 'w') as f:
       for i in range(len(self.bins)):
-        f.write(f"lbd{i} \"--lbd{i} \" r (1, {self.size-1}) \n")
+        f.write(f"lbd{i} \"--lbd{i} \" r (1, {self.size}) \n")
     super().write_parameters()
     with open(f"irace_output/{self.instance_dir}/1.txt", "a") as f:
       f.write(f"{self.descent_rate_j}\n")

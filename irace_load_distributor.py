@@ -85,7 +85,7 @@ def run_baseline_full(i, dynamic_seed, dynamic_bin_seed, static_seed, grapher_se
   dynamic_bin_cv = Event()
   job_queue.put((f"python3 irace_dynamic_bin.py {i} {dynamic_bin_seed}", dynamic_bin_cv))
   static_cv = Event()
-  job_queue.put((f"python3 irace_static.py {i} {static_seed}"))
+  job_queue.put((f"python3 irace_static.py {i} {static_seed}", static_cv))
   dynamic_cv.wait()
   dynamic_bin_cv.wait()
   static_cv.wait()

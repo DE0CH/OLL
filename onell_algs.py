@@ -111,7 +111,7 @@ class BinaryProblem:
         if p==0:
             return self, self.fitness, 0
 
-        p_distribution = [0] + [math.comb(self.n, k) * p**k * (1-p)**k / (1-(1-p)**k) for k in range(1, self.n+1)]
+        p_distribution = [0] + [math.comb(self.n, k) * p**k * (1-p)**(self.n-k) / (1-(1-p)**self.n) for k in range(1, self.n+1)]        
         l = rng.choice(range(self.n + 1), p=p_distribution)               
         
         best_obj = -1

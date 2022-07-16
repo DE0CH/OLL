@@ -30,7 +30,7 @@ class IraceDecoder:
   def end(self):
     line = self.lines[0]
     line = line.strip().split()[1:]
-    return [int(line[i]) for i in range(len(line)) if i%2 == 1]
+    return [float(line[i]) for i in range(len(line)) if i%2 == 1]
 
 class IraceCaller:
   def __init__(self, size, experiment_multiple, seed, type_name):
@@ -78,7 +78,7 @@ class IraceCaller:
       "--scenario", f"scenario_{self.type_name}_{self.size}_{self.experiment_multiple}_{self.seed}.txt", 
       "--train-instances-dir", self.instance_dir,
       "--parameter-file", os.path.basename(self.parameters_file)],
-    stdout=subprocess.PIPE, cwd="irace_output")
+    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="irace_output")
     decoder = IraceDecoder()
     while True:
       try:
@@ -111,7 +111,7 @@ class IraceCallerDynamic(IraceCaller):
   def write_parameters(self):
     with open(self.parameters_file, "w") as f:
       for i in range(self.size):
-        f.write(f"lbd{i} \"--lbd{i} \" i (1, {self.size-1}) \n")
+        f.write(f"lbd{i} \"--lbd{i} \" r (1, {self.size}) \n")
     return super().write_parameters()
 
 class IraceCallerStatic(IraceCaller):
@@ -120,7 +120,7 @@ class IraceCallerStatic(IraceCaller):
   
   def write_parameters(self):
     with open(self.parameters_file, "w") as f:
-      f.write(f"lbd \"--lbd \" i (1, {self.size-1}) \n")
+      f.write(f"lbd \"--lbd \" r (1, {self.size}) \n")
     return super().write_parameters()
   
   def translate(self):
@@ -136,7 +136,7 @@ class IraceCallerDynamicBin(IraceCaller):
     bins, bin_lookup = get_bins(self.size)
     with open(self.parameters_file, "w") as f:
       for i in range(len(bins)):
-        f.write(f"lbd{i} \"--lbd{i} \" i (1, {self.size-1}) \n")
+        f.write(f"lbd{i} \"--lbd{i} \" r (1, {self.size}) \n")
     return super().write_parameters()
   
   def translate(self):
@@ -164,7 +164,7 @@ class IraceCallerBinningComparison(IraceCaller):
   def write_parameters(self):
     with open(self.parameters_file, 'w') as f:
       for i in range(len(self.bins)):
-        f.write(f"lbd{i} \"--lbd{i} \" i (1, {self.size-1}) \n")
+        f.write(f"lbd{i} \"--lbd{i} \" r (1, {self.size}) \n")
     super().write_parameters()
     with open(f"irace_output/{self.instance_dir}/1.txt", "a") as f:
       f.write(f"{self.descent_rate_j}\n")

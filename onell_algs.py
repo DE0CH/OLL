@@ -1,6 +1,8 @@
 import numpy as np
 from copy import deepcopy
 import time
+import math
+import scipy.stats
 
 
 class BinaryProblem:
@@ -110,9 +112,8 @@ class BinaryProblem:
         if p==0:
             return self, self.fitness, 0
 
-        l = 0
-        while l==0:
-            l = rng.binomial(self.n, p)                
+        p_distribution = [0] + [scipy.stats.binom.pmf(k, self.n, p) / (1-(1-p)**self.n) for k in range(1, self.n+1)]        
+        l = rng.choice(range(self.n + 1), p=p_distribution)               
         
         best_obj = -1
         best_locs = None
@@ -342,7 +343,7 @@ def onell_dynamic_5params(n, problem=OneMax, seed=None,
         # mutation phase
         s = time.time()
         p =  np.clip(alpha * lbd / n, min_prob, max_prob)               
-        xprime, f_xprime, ne1 = x.mutate(p, int(lbd), rng)  
+        xprime, f_xprime, ne1 = x.mutate(p, round(lbd), rng)  
         mtimes.append(time.time()-s)            
      
         # crossover phase
@@ -410,7 +411,7 @@ def onell_dynamic_5params_old(n, problem=OneMax, seed=None,
         # mutation phase
         s = time.time()
         p =  np.clip(alpha * lbd / n, min_prob, max_prob)                
-        xprime, f_xprime, ne1 = x.mutate_old(p, int(lbd), rng)      
+        xprime, f_xprime, ne1 = x.mutate_old(p, round(lbd), rng)      
         mtimes.append(time.time()-s)     
 
         # crossover phase
@@ -476,13 +477,13 @@ def onell_lambda(n, problem=OneMax, seed=None,
         # mutation phase
         s = time.time()  
         p = lbd/n
-        xprime, f_xprime, ne1 = x.mutate(p, int(lbd), rng)      
+        xprime, f_xprime, ne1 = x.mutate(p, round(lbd), rng)      
         mtimes.append(time.time()-s)     
 
         # crossover phase
         s = time.time()
         c = 1/lbd          
-        y, f_y, ne2 = x.crossover(xprime, c, int(lbd), include_xprime_crossover, count_different_inds_only,  rng)          
+        y, f_y, ne2 = x.crossover(xprime, c, round(lbd), include_xprime_crossover, count_different_inds_only,  rng)          
         ctimes.append(time.time()-s)                     
 
         # selection phase
@@ -526,13 +527,13 @@ def onell_dynamic_theory(n, problem=OneMax, seed=None,
         s = time.time()
         lbd = np.sqrt(n / (n-f_x))        
         p = lbd/n
-        xprime, f_xprime, ne1 = x.mutate(p, int(lbd), rng)      
+        xprime, f_xprime, ne1 = x.mutate(p, round(lbd), rng)      
         mtimes.append(time.time()-s)     
 
         # crossover phase
         s = time.time()
         c = 1/lbd          
-        y, f_y, ne2 = x.crossover(xprime, c, int(lbd), include_xprime_crossover, count_different_inds_only,  rng)          
+        y, f_y, ne2 = x.crossover(xprime, c, round(lbd), include_xprime_crossover, count_different_inds_only,  rng)          
         ctimes.append(time.time()-s)                     
 
         # selection phase
@@ -585,13 +586,13 @@ def onell_lbd_one(n, problem=OneMax, seed=None,
         s = time.time()
         #lbd = np.sqrt(n / (n-f_x))        
         p = lbd/n
-        xprime, f_xprime, ne1 = x.mutate(p, int(lbd), rng)      
+        xprime, f_xprime, ne1 = x.mutate(p, round(lbd), rng)      
         mtimes.append(time.time()-s)     
 
         # crossover phase
         s = time.time()
         c = 1/lbd          
-        y, f_y, ne2 = x.crossover(xprime, c, int(lbd), include_xprime_crossover, count_different_inds_only,  rng)          
+        y, f_y, ne2 = x.crossover(xprime, c, round(lbd), include_xprime_crossover, count_different_inds_only,  rng)          
         ctimes.append(time.time()-s)                     
 
         # selection phase

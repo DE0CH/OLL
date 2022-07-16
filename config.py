@@ -125,3 +125,14 @@ def get_cutoff(size):
     return 250000
   else:
     return 300000
+
+from contextlib import contextmanager,redirect_stderr,redirect_stdout
+from os import devnull
+
+@contextmanager
+def suppress_stderr():
+    """A context manager that redirects stdout and stderr to devnull"""
+    with open(devnull, 'w') as fnull:
+        with redirect_stderr(fnull) as err:
+            yield (err, )
+  

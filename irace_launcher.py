@@ -30,7 +30,7 @@ class IraceDecoder:
   def end(self):
     line = self.lines[0]
     line = line.strip().split()[1:]
-    return [int(line[i]) for i in range(len(line)) if i%2 == 1]
+    return [float(line[i]) for i in range(len(line)) if i%2 == 1]
 
 class IraceCaller:
   def __init__(self, size, experiment_multiple, seed, type_name):

@@ -78,7 +78,7 @@ class IraceCaller:
       "--scenario", f"scenario_{self.type_name}_{self.size}_{self.experiment_multiple}_{self.seed}.txt", 
       "--train-instances-dir", self.instance_dir,
       "--parameter-file", os.path.basename(self.parameters_file)],
-    stdout=subprocess.PIPE, cwd="irace_output")
+    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="irace_output")
     decoder = IraceDecoder()
     while True:
       try:

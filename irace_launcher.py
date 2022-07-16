@@ -164,7 +164,7 @@ class IraceCallerBinningComparison(IraceCaller):
   def write_parameters(self):
     with open(self.parameters_file, 'w') as f:
       for i in range(len(self.bins)):
-        f.write(f"lbd{i} \"--lbd{i} \" i (1, {self.size-1}) \n")
+        f.write(f"lbd{i} \"--lbd{i} \" r (1, {self.size-1}) \n")
     super().write_parameters()
     with open(f"irace_output/{self.instance_dir}/1.txt", "a") as f:
       f.write(f"{self.descent_rate_j}\n")

@@ -19,6 +19,7 @@ job_queue = Queue()
 class JobType(Enum):
   baseline = 'baseline'
   binning = 'binning'
+  full = 'full'
   def __str__(self):
     return self.value
 
@@ -96,10 +97,10 @@ def run_baseline_full(i, dynamic_seed, dynamic_bin_seed, static_seed, grapher_se
 def main(job_type: JobType):
   for i in range(80):
     Thread(target=worker, args=(f"pc8-{i:03d}-l", ), daemon=True).start()
-  if job_type == JobType.baseline:
-    runs = [Thread(target=run_baseline_full, args=(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1))) for i in range(N)]
-  elif job_type == JobType.binning:
-    runs = []
+  runs = []
+  if job_type == JobType.baseline or job_type == JobType.full:
+    runs += [Thread(target=run_baseline_full, args=(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1))) for i in range(N)]
+  elif job_type == JobType.binning or job_type == JobType.full:
     for i in range(N):
       runs.append(Thread(target=run_binning_comparison_full, args=(i, list(rng.integers(1<<15, (1<<16)-1, M)), list(rng.integers(1<<15, (1<<16)-1, M)))))
   for thread in runs:

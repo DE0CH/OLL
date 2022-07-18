@@ -1,7 +1,9 @@
 import multiprocessing
 import os
-from onell_algs_rs import onell_dynamic_theory, onell_lambda, onell_five_parameters
-from onell_algs import onell_dynamic_5params
+try:
+  from onell_algs_rs import onell_dynamic_theory, onell_lambda, onell_five_parameters
+except:
+  pass
 import json
 from matplotlib import pyplot as plt
 

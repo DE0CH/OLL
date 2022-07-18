@@ -7,7 +7,7 @@ from config import suppress_stderr
 
 seed = int(sys.argv[3])
 instance = sys.argv[4]
-bound = float(sys.argv[5])
+bound = int(float(sys.argv[5]))
 with open(instance) as f:
     n = int(f.read())
 

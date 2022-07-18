@@ -15,6 +15,6 @@ lbd = float(sys.argv[7])
 lbds = [lbd]*n
 
 with suppress_stderr():
-    a, b, c = onell_lambda(n, lbds=lbds, max_evals=bound, seed=seed)
+  c = onell_lambda(n, lbds, seed, bound)
 print(c)
 print(c)

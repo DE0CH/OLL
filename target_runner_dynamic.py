@@ -18,6 +18,6 @@ for i in range(n):
     lbds[j] = lbd
 
 with suppress_stderr():
-    a, b, c = onell_lambda(n, lbds=lbds, max_evals=bound, seed=seed)
+  c = onell_lambda(n, lbds, seed, bound)
 print(c)
 print(c)

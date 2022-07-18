@@ -6,5 +6,5 @@ RUN Rscript -e "install.packages('irace', repos='https://cloud.r-project.org')"
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 COPY onell_algs_rs onell_algs_rs
-RUN cd onell_algs_rs && maturin develop --release
+RUN cd onell_algs_rs && maturin build --release && pip3 install onell_algs_rs/target/wheels/*
 WORKDIR /usr/app

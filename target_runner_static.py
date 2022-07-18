@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 import sys
-from onell_algs import onell_lambda
+from onell_algs_rs import onell_lambda
 from config import suppress_stderr
 
 seed = int(sys.argv[3])

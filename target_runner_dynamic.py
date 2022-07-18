@@ -2,7 +2,7 @@
 
 import sys
 from typing import SupportsRound
-from onell_algs import onell_lambda
+from onell_algs_rs import onell_lambda
 from config import suppress_stderr
 
 seed = int(sys.argv[3])

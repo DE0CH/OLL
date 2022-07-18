@@ -1,6 +1,7 @@
 import multiprocessing
 import os
-from onell_algs import onell_lambda, onell_dynamic_5params, onell_dynamic_theory
+from onell_algs_rs import onell_dynamic_theory, onell_lambda, onell_five_parameters
+from onell_algs import onell_dynamic_5params
 import json
 from matplotlib import pyplot as plt
 
@@ -96,15 +97,15 @@ def get_bins(size, descent_rate=descent_rate):
   return bins, bin_lookup
 
 def onell_lambda_positional(size, lbds, seed):
-  _, _, performance = onell_lambda(size, lbds=lbds, seed=seed)
+  _, _, performance = onell_lambda(size, lbds, seed, 99999999)
   return performance
 
 def onell_dynamic_5params_positional(size, seed): 
-  _, _, performance = onell_dynamic_5params(size, seed=seed)
+  _, _, performance = onell_five_parameters(size, seed, 99999999)
   return performance
 
 def onell_dynamic_theory_positional(size, seed):
-  _, _, performance = onell_dynamic_theory(size, seed=seed)
+  _, _, performance = onell_dynamic_theory(size, seed, 99999999)
   return performance
 
 def graph(json_path, png_path, dynamic_lbd_performance, dynamic_lbd_bin_performance, static_lbd_performance, random_dynamic_lbd_performance, random_static_lbd_performance, one_lbd_performance, dynamic_theory_performance, dynamic_5params_performance):

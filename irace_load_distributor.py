@@ -95,8 +95,12 @@ def run_baseline_full(i, dynamic_seed, dynamic_bin_seed, static_seed, grapher_se
   grapher_cv.wait()
   
 def main(job_type: JobType):
-  for i in range(80):
-    Thread(target=worker, args=(f"pc8-{i:03d}-l", ), daemon=True).start()
+  if mock:
+    Thread(target=worker, args=(f"mock-pc", ), daemon=True).start()
+    Thread(target=worker, args=(f"mock-pc2", ), daemon=True).start()
+  else:
+    for i in range(80):
+      Thread(target=worker, args=(f"pc8-{i:03d}-l", ), daemon=True).start()
   runs = []
   if job_type == JobType.baseline or job_type == JobType.full:
     runs += [Thread(target=run_baseline_full, args=(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1))) for i in range(N)]

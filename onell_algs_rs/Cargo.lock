@@ -44,7 +44,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 [[package]]
 name = "fastrand"
 version = "1.7.0"
-source = "git+https://github.com/DE0CH/fastrand?branch=rand_core#539d1e7b2157c9470f1b7ea1a10204781daa299a"
+source = "git+https://github.com/DE0CH/fastrand?branch=rand_core#b48f191d980769e14bcaebdaebb97662690b57a2"
 dependencies = [
  "instant",
  "rand_core",

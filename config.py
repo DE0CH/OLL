@@ -1,6 +1,9 @@
 import multiprocessing
 import os
-from onell_algs import onell_lambda, onell_dynamic_5params, onell_dynamic_theory
+try:
+  from onell_algs_rs import onell_dynamic_theory, onell_lambda, onell_five_parameters
+except:
+  pass
 import json
 from matplotlib import pyplot as plt
 
@@ -96,24 +99,24 @@ def get_bins(size, descent_rate=descent_rate):
   return bins, bin_lookup
 
 def onell_lambda_positional(size, lbds, seed):
-  _, _, performance = onell_lambda(size, lbds=lbds, seed=seed)
+  performance = onell_lambda(size, lbds, seed, get_cutoff(size))
   return performance
 
 def onell_dynamic_5params_positional(size, seed): 
-  _, _, performance = onell_dynamic_5params(size, seed=seed)
+  performance = onell_five_parameters(size, seed, get_cutoff(size))
   return performance
 
 def onell_dynamic_theory_positional(size, seed):
-  _, _, performance = onell_dynamic_theory(size, seed=seed)
+  performance = onell_dynamic_theory(size, seed, get_cutoff(size))
   return performance
 
-def graph(json_path, png_path, dynamic_lbd_performance, dynamic_lbd_bin_performance, static_lbd_performance, random_dynamic_lbd_performance, random_static_lbd_performance, one_lbd_performance, dynamic_theory_performance, dynamic_5params_performance):
-  data = (dynamic_lbd_performance, dynamic_lbd_bin_performance, static_lbd_performance, random_dynamic_lbd_performance, random_static_lbd_performance, one_lbd_performance, dynamic_theory_performance, dynamic_5params_performance)
+def graph(json_path, png_path, dynamic_lbd_performance, dynamic_lbd_bin_performance, static_lbd_performance, one_lbd_performance, dynamic_theory_performance, dynamic_5params_performance):
+  data = (dynamic_lbd_performance, dynamic_lbd_bin_performance, static_lbd_performance, one_lbd_performance, dynamic_theory_performance, dynamic_5params_performance)
   with open(json_path, 'w') as f:
     json.dump(data, f)
   figure, ax = plt.subplots(figsize=(12,5))
   figure.subplots_adjust(left=0.25)
-  ax.boxplot(data, labels=("Dynamic Lambda", "Dynamic Lambda with binning", "Static Lambda", "Random Dynamic Lambda", "Random Static Lambda", "Lambda = 1", "Dynamic Theory", "Five Parameters"), vert=False)
+  ax.boxplot(data, labels=("Dynamic Lambda", "Dynamic Lambda with binning", "Static Lambda", "Lambda = 1", "Dynamic Theory", "Five Parameters"), vert=False)
   figure.savefig(png_path, dpi=300)
 
 def get_cutoff(size):

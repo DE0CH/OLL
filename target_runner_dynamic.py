@@ -2,12 +2,12 @@
 
 import sys
 from typing import SupportsRound
-from onell_algs import onell_lambda
+from onell_algs_rs import onell_lambda
 from config import suppress_stderr
 
 seed = int(sys.argv[3])
 instance = sys.argv[4]
-bound = float(sys.argv[5])
+bound = int(float(sys.argv[5]))
 with open(instance) as f:
     n = int(f.read())
 
@@ -18,6 +18,6 @@ for i in range(n):
     lbds[j] = lbd
 
 with suppress_stderr():
-    a, b, c = onell_lambda(n, lbds=lbds, max_evals=bound, seed=seed)
+  c = onell_lambda(n, lbds, seed, bound)
 print(c)
 print(c)

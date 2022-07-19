@@ -42,15 +42,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
-name = "fastrand"
-version = "1.7.0"
-source = "git+https://github.com/DE0CH/fastrand?branch=rand_core#b48f191d980769e14bcaebdaebb97662690b57a2"
-dependencies = [
- "instant",
- "rand_core",
-]
-
-[[package]]
 name = "funty"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -72,15 +63,6 @@ name = "indoc"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "05a0bd019339e5d968b37855180087b7b9d512c5046fbd244cf8c95687927d6e"
-
-[[package]]
-name = "instant"
-version = "0.1.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a5bbe824c507c5da5956355e86a746d82e0e1464f65d862cc5e71da70e94b2c"
-dependencies = [
- "cfg-if",
-]
 
 [[package]]
 name = "lazy_static"
@@ -199,7 +181,6 @@ name = "onell_algs"
 version = "0.1.0"
 dependencies = [
  "bitvec",
- "fastrand",
  "pyo3",
  "rand",
  "rand_chacha",

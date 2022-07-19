@@ -8,6 +8,8 @@ use bitvec::prelude::*;
 use pyo3::prelude::*;
 use rand::prelude::IteratorRandom;
 use rand::seq::SliceRandom;
+use rand::SeedableRng;
+use rand_chacha::ChaCha20Rng;
 use statrs::distribution::{Binomial, Discrete};
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
@@ -147,7 +149,7 @@ fn generation_with_lambda<R: rand::Rng>(x: &BitVec, lbd: f64, rng: &mut R) -> (B
 #[pyfunction]
 fn onell_lambda(n: usize, lbds: Vec<f64>, seed: u64, max_evals: usize) -> PyResult<usize> {
     let max_evals = NEvals(max_evals);
-    let mut rng = fastrand::Rng::with_seed(seed);
+    let mut rng: ChaCha20Rng = SeedableRng::seed_from_u64(seed);
     let mut x = random_bits(&mut rng, n);
     let mut n_evals = NEvals::new();
     while x.count_ones() != n && n_evals < max_evals {
@@ -166,7 +168,7 @@ fn onell_lambda(n: usize, lbds: Vec<f64>, seed: u64, max_evals: usize) -> PyResu
 #[pyfunction]
 fn onell_dynamic_theory(n: usize, seed: u64, max_evals: usize) -> PyResult<usize> {
     let max_evals = NEvals(max_evals);
-    let mut rng = fastrand::Rng::with_seed(seed);
+    let mut rng: ChaCha20Rng = SeedableRng::seed_from_u64(seed);
     let mut x = random_bits(&mut rng, n);
     let mut n_evals = NEvals::new();
     while x.count_ones() != n && n_evals < max_evals {
@@ -185,7 +187,7 @@ fn onell_dynamic_theory(n: usize, seed: u64, max_evals: usize) -> PyResult<usize
 #[pyfunction]
 fn onell_five_parameters(n: usize, seed: u64, max_evals: usize) -> PyResult<usize> {
     let max_evals = NEvals(max_evals);
-    let mut rng = fastrand::Rng::with_seed(seed);
+    let mut rng: ChaCha20Rng = SeedableRng::seed_from_u64(seed);
     let mut x = random_bits(&mut rng, n);
     let mut n_evals = NEvals::new();
     let alpha = 0.45;

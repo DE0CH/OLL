@@ -15,8 +15,8 @@ use statrs::distribution::{Binomial, Discrete};
 fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
     Ok((a + b).to_string())
 }
+
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
-#[pyclass]
 struct NEvals(usize);
 
 impl NEvals {

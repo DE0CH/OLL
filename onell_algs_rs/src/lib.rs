@@ -10,12 +10,6 @@ use rand::prelude::IteratorRandom;
 use rand::seq::SliceRandom;
 use statrs::distribution::{Binomial, Discrete};
 
-/// Formats the sum of two numbers as string.
-#[pyfunction]
-fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
-    Ok((a + b).to_string())
-}
-
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 struct NEvals(usize);
 
@@ -249,6 +243,5 @@ fn onell_algs_rs(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(onell_lambda, m)?)?;
     m.add_function(wrap_pyfunction!(onell_dynamic_theory, m)?)?;
     m.add_function(wrap_pyfunction!(onell_five_parameters, m)?)?;
-    m.add_class::<NEvals>()?;
     Ok(())
 }

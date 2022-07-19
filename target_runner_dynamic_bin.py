@@ -23,6 +23,6 @@ for i in range(n):
   lbds[i] = lbd_bins[bin_lookup[i]]
 
 with suppress_stderr():
-  c = onell_lambda(n, lbds=lbds, max_evals=bound, seed=seed)
+  c = onell_lambda(n, lbds, seed, bound)
 print(c)
 print(c)

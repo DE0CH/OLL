@@ -131,7 +131,10 @@ fn generation_full<R: rand::Rng>(
     let (x_prime, ne1) = mutate(x, p, n_child_mutate, rng);
     let (y, ne2) = crossover(x, &x_prime, c, n_child_crossover, rng);
     let n_evals = ne1 + ne2;
-    let x = [x, &y].into_iter().max_by(|x, y| x.cmp(y)).unwrap();
+    let x = [x, &y]
+        .into_iter()
+        .max_by(|x, y| x.count_ones().cmp(&y.count_ones()))
+        .unwrap();
     (x.clone(), n_evals)
 }
 

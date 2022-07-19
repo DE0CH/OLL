@@ -1,17 +1,19 @@
+use std::{
+    cmp::{max_by, min_by},
+    iter::{repeat, repeat_with},
+    ops::{Add, AddAssign},
+};
 
-use std::{iter::{repeat_with, repeat}, ops::{Add, AddAssign}, cmp::{max_by, min_by}};
-
-use pyo3::prelude::*;
 use bitvec::prelude::*;
+use pyo3::prelude::*;
 use rand::prelude::IteratorRandom;
-use statrs::distribution::{Binomial, Discrete};
 use rand::seq::SliceRandom;
+use statrs::distribution::{Binomial, Discrete};
 
 /// Formats the sum of two numbers as string.
 #[pyfunction]
 fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
     Ok((a + b).to_string())
-
 }
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 #[pyclass]
@@ -22,7 +24,7 @@ impl NEvals {
         NEvals(0)
     }
     fn increament(&mut self) {
-       self.0 += 1; 
+        self.0 += 1;
     }
     fn make_big(&mut self) {
         self.0 *= 2;
@@ -43,13 +45,13 @@ impl AddAssign for NEvals {
 }
 
 fn random_bits<R: rand::Rng>(rng: &mut R, length: usize) -> BitVec {
-  let arch_len = std::mem::size_of::<usize>() * 8;
-  let word_length = (length - 1) / arch_len + 1; 
-  let numbers = std::iter::repeat_with(|| rng.gen::<usize>()).take(word_length);
-  let mut bv = bitvec![usize, Lsb0;];
-  bv.extend(numbers);
-  bv.truncate(length);
-  bv
+    let arch_len = std::mem::size_of::<usize>() * 8;
+    let word_length = (length - 1) / arch_len + 1;
+    let numbers = std::iter::repeat_with(|| rng.gen::<usize>()).take(word_length);
+    let mut bv = bitvec![usize, Lsb0;];
+    bv.extend(numbers);
+    bv.truncate(length);
+    bv
 }
 
 fn random_bits_with_ones<R: rand::Rng>(length: usize, amount: usize, rng: &mut R) -> BitVec {
@@ -68,25 +70,38 @@ fn random_ones_with_p<R: rand::Rng>(length: usize, p: f64, rng: &mut R) -> BitVe
 
 fn mutate<R: rand::Rng>(parent: &BitVec, p: f64, n_child: usize, rng: &mut R) -> (BitVec, NEvals) {
     let bi = Binomial::new(p, parent.len().try_into().unwrap()).unwrap();
-    let l = *(0..parent.len()).collect::<Vec<usize>>().choose_weighted(rng, |i| {
-        if *i == 0{
-            0f64
-        } else {
-            bi.pmf((*i).try_into().unwrap()) / (1f64 - ((1f64 - p) as f64).powi(parent.len().try_into().unwrap()))
-        }
-    }).unwrap();
+    let l = *(0..parent.len())
+        .collect::<Vec<usize>>()
+        .choose_weighted(rng, |i| {
+            if *i == 0 {
+                0f64
+            } else {
+                bi.pmf((*i).try_into().unwrap())
+                    / (1f64 - ((1f64 - p) as f64).powi(parent.len().try_into().unwrap()))
+            }
+        })
+        .unwrap();
     let children = repeat_with(|| {
         let mut child = random_bits_with_ones(parent.len(), l, rng);
         child ^= parent;
         child
-    }).take(n_child);
+    })
+    .take(n_child);
 
-    let x_prime = children.max_by(|x, y| x.count_ones().cmp(&y.count_ones())).unwrap();
+    let x_prime = children
+        .max_by(|x, y| x.count_ones().cmp(&y.count_ones()))
+        .unwrap();
 
     (x_prime, NEvals(n_child))
 }
 
-fn crossover<R: rand::Rng>(parent: &BitVec, x_prime: &BitVec, p: f64, n_child: usize, rng: &mut R) -> (BitVec, NEvals){
+fn crossover<R: rand::Rng>(
+    parent: &BitVec,
+    x_prime: &BitVec,
+    p: f64,
+    n_child: usize,
+    rng: &mut R,
+) -> (BitVec, NEvals) {
     let mut n_evals = NEvals::new();
     let children = repeat_with(|| {
         let mut child = bitvec![usize, Lsb0;];
@@ -99,17 +114,30 @@ fn crossover<R: rand::Rng>(parent: &BitVec, x_prime: &BitVec, p: f64, n_child: u
             n_evals.increament();
         }
         child
-    }).take(n_child);
-    let y = children.max_by(|x, y| x.count_ones().cmp(&y.count_ones())).unwrap();
-    let y = [y, x_prime.clone()].into_iter().max_by(|x, y| x.count_ones().cmp(&y.count_ones())).unwrap();
+    })
+    .take(n_child);
+    let y = children
+        .max_by(|x, y| x.count_ones().cmp(&y.count_ones()))
+        .unwrap();
+    let y = [y, x_prime.clone()]
+        .into_iter()
+        .max_by(|x, y| x.count_ones().cmp(&y.count_ones()))
+        .unwrap();
     (y, n_evals)
 }
 
-fn generation_full<R: rand::Rng>(x: &BitVec, p: f64, n_child_mutate: usize, c: f64, n_child_crossover: usize, rng: &mut R) -> (BitVec, NEvals) {
+fn generation_full<R: rand::Rng>(
+    x: &BitVec,
+    p: f64,
+    n_child_mutate: usize,
+    c: f64,
+    n_child_crossover: usize,
+    rng: &mut R,
+) -> (BitVec, NEvals) {
     let (x_prime, ne1) = mutate(x, p, n_child_mutate, rng);
-    let (y, ne2) = crossover(x, &x_prime, c, n_child_crossover, rng);        
+    let (y, ne2) = crossover(x, &x_prime, c, n_child_crossover, rng);
     let n_evals = ne1 + ne2;
-    let x = [x, &y].into_iter().max_by(|x, y| x.cmp(y)).unwrap(); 
+    let x = [x, &y].into_iter().max_by(|x, y| x.cmp(y)).unwrap();
     (x.clone(), n_evals)
 }
 
@@ -125,7 +153,7 @@ fn onell_lambda(n: usize, lbds: Vec<f64>, seed: u64, max_evals: usize) -> PyResu
     let mut rng = fastrand::Rng::with_seed(seed);
     let mut x = random_bits(&mut rng, n);
     let mut n_evals = NEvals::new();
-    while x.count_ones() != n && n_evals < max_evals{
+    while x.count_ones() != n && n_evals < max_evals {
         let lbd = lbds[x.count_ones()];
         let ne;
         (x, ne) = generation_with_lambda(&x, lbd, &mut rng);
@@ -134,7 +162,7 @@ fn onell_lambda(n: usize, lbds: Vec<f64>, seed: u64, max_evals: usize) -> PyResu
 
     if x.count_ones() != n {
         n_evals.make_big()
-    } 
+    }
     Ok(n_evals.0)
 }
 
@@ -197,11 +225,14 @@ fn onell_five_parameters(n: usize, seed: u64, max_evals: usize) -> PyResult<usiz
         let n_child_crossover = ((lbd * beta).round() as i64).try_into().unwrap();
         let (y, ne) = generation_full(&x, p, n_child_mutate, c, n_child_crossover, &mut rng);
         if x.count_ones() < y.count_ones() {
-            lbd = max_by(b*lbd, 1.0, |x, y| x.partial_cmp(y).unwrap());
+            lbd = max_by(b * lbd, 1.0, |x, y| x.partial_cmp(y).unwrap());
         } else {
-            lbd = min_by(a * lbd, (n-1) as f64, |x, y| x.partial_cmp(y).unwrap());
+            lbd = min_by(a * lbd, (n - 1) as f64, |x, y| x.partial_cmp(y).unwrap());
         }
-        x = [x, y].into_iter().max_by(|x, y| x.count_ones().cmp(&y.count_ones())).unwrap();
+        x = [x, y]
+            .into_iter()
+            .max_by(|x, y| x.count_ones().cmp(&y.count_ones()))
+            .unwrap();
         n_evals += ne;
     }
 
@@ -210,7 +241,6 @@ fn onell_five_parameters(n: usize, seed: u64, max_evals: usize) -> PyResult<usiz
     }
 
     return Ok(n_evals.0);
-
 }
 
 /// A Python module implemented in Rust.

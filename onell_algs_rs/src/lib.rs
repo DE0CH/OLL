@@ -207,7 +207,7 @@ fn onell_five_parameters(n: usize, seed: u64, max_evals: usize) -> PyResult<usiz
                 p
             }
         };
-        let c = gamma / lbd / (n as f64);
+        let c = gamma / lbd;
         let c = {
             if c < min_prob {
                 min_prob

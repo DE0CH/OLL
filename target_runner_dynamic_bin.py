@@ -8,7 +8,7 @@ seed = int(sys.argv[3])
 instance = sys.argv[4]
 bound = int(float(sys.argv[5]))
 with open(instance) as f:
-    n = int(f.read())
+  n = int(f.read())
 
 
 lbd = float(sys.argv[7])

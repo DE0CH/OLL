@@ -25,8 +25,6 @@ def main(i, dynamic_seed, dynamic_bin_seed, static_seed, seed, output_dir):
     dynamic_performance = pool.starmap(onell_lambda_positional, zip([sizes[i]]*trials, [dynamic_best_config] * trials, next_randoms(rng, trials)))
     dynamic_bin_performance = pool.starmap(onell_lambda_positional, zip([sizes[i]]*trials, [dynamic_bin_best_config] * trials, next_randoms(rng, trials)))
     static_performance = pool.starmap(onell_lambda_positional, zip([sizes[i]]*trials, [static_best_config] * trials, next_randoms(rng, trials)))
-    random_dynamic_performance = pool.starmap(onell_lambda_positional, zip([sizes[i]]*trials, [list(rng.integers(1, sizes[i], sizes[i])) for _ in range(trials)], next_randoms(rng, trials)))
-    random_static_performance = pool.starmap(onell_lambda_positional, zip([sizes[i]]*trials, [[rng.integers(1, sizes[i])] * sizes[i] for _ in range(trials)], next_randoms(rng, trials)))
     one_performance = pool.starmap(onell_lambda_positional, zip([sizes[i]]*trials, [[1] * sizes[i]]*trials, next_randoms(rng, trials)))
     dynamic_theory_performance = pool.starmap(onell_dynamic_theory_positional, zip([sizes[i]]*trials, next_randoms(rng, trials)))
     five_parameters_performance = pool.starmap(onell_dynamic_5params_positional, zip([sizes[i]]*trials, next_randoms(rng, trials)))
@@ -36,8 +34,6 @@ def main(i, dynamic_seed, dynamic_bin_seed, static_seed, seed, output_dir):
     dynamic_performance,
     dynamic_bin_performance,
     static_performance,
-    random_dynamic_performance,
-    random_static_performance,
     one_performance,
     dynamic_theory_performance,
     five_parameters_performance 

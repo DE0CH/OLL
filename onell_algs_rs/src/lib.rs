@@ -93,7 +93,7 @@ fn mutate<R: rand::Rng>(parent: &BitVec, p: f64, n_child: usize, rng: &mut R) ->
 
 fn crossover<R: rand::Rng>(
     parent: &BitVec,
-    x_prime: &BitVec,
+    x_prime: BitVec,
     p: f64,
     n_child: usize,
     rng: &mut R,
@@ -104,7 +104,7 @@ fn crossover<R: rand::Rng>(
         child.extend(repeat(false).take(parent.len()));
         let mask = random_ones_with_p(parent.len(), p, rng);
         let parent_half = !mask.clone() & parent;
-        let x_prime_half = mask & x_prime;
+        let x_prime_half = mask & &x_prime;
         child = parent_half | x_prime_half;
         if child.as_bitslice() != parent && child.as_bitslice() != x_prime {
             n_evals.increament();
@@ -115,7 +115,7 @@ fn crossover<R: rand::Rng>(
     let y = children
         .max_by(|x, y| x.count_ones().cmp(&y.count_ones()))
         .unwrap();
-    let y = [y, x_prime.clone()]
+    let y = [y, x_prime]
         .into_iter()
         .max_by(|x, y| x.count_ones().cmp(&y.count_ones()))
         .unwrap();
@@ -123,24 +123,24 @@ fn crossover<R: rand::Rng>(
 }
 
 fn generation_full<R: rand::Rng>(
-    x: &BitVec,
+    x: BitVec,
     p: f64,
     n_child_mutate: usize,
     c: f64,
     n_child_crossover: usize,
     rng: &mut R,
 ) -> (BitVec, NEvals) {
-    let (x_prime, ne1) = mutate(x, p, n_child_mutate, rng);
-    let (y, ne2) = crossover(x, &x_prime, c, n_child_crossover, rng);
+    let (x_prime, ne1) = mutate(&x, p, n_child_mutate, rng);
+    let (y, ne2) = crossover(&x, x_prime, c, n_child_crossover, rng);
     let n_evals = ne1 + ne2;
-    let x = [x, &y]
+    let x = [x, y]
         .into_iter()
         .max_by(|x, y| x.count_ones().cmp(&y.count_ones()))
         .unwrap();
-    (x.clone(), n_evals)
+    (x, n_evals)
 }
 
-fn generation_with_lambda<R: rand::Rng>(x: &BitVec, lbd: f64, rng: &mut R) -> (BitVec, NEvals) {
+fn generation_with_lambda<R: rand::Rng>(x: BitVec, lbd: f64, rng: &mut R) -> (BitVec, NEvals) {
     let p: f64 = lbd / (x.len() as f64);
     let n_child: usize = (lbd.round() as i64).try_into().unwrap();
     generation_full(x, p, n_child, p, n_child, rng)
@@ -155,7 +155,7 @@ fn onell_lambda(n: usize, lbds: Vec<f64>, seed: u64, max_evals: usize) -> PyResu
     while x.count_ones() != n && n_evals < max_evals {
         let lbd = lbds[x.count_ones()];
         let ne;
-        (x, ne) = generation_with_lambda(&x, lbd, &mut rng);
+        (x, ne) = generation_with_lambda(x, lbd, &mut rng);
         n_evals += ne;
     }
 
@@ -174,7 +174,7 @@ fn onell_dynamic_theory(n: usize, seed: u64, max_evals: usize) -> PyResult<usize
     while x.count_ones() != n && n_evals < max_evals {
         let lbd = (n as f64 / (n - x.count_ones()) as f64).sqrt();
         let ne;
-        (x, ne) = generation_with_lambda(&x, lbd, &mut rng);
+        (x, ne) = generation_with_lambda(x, lbd, &mut rng);
         n_evals += ne;
     }
 
@@ -222,16 +222,14 @@ fn onell_five_parameters(n: usize, seed: u64, max_evals: usize) -> PyResult<usiz
 
         let n_child_mutate = (lbd.round() as i64).try_into().unwrap();
         let n_child_crossover = ((lbd * beta).round() as i64).try_into().unwrap();
-        let (y, ne) = generation_full(&x, p, n_child_mutate, c, n_child_crossover, &mut rng);
-        if x.count_ones() < y.count_ones() {
+        let f_x = x.count_ones();
+        let ne;
+        (x, ne) = generation_full(x, p, n_child_mutate, c, n_child_crossover, &mut rng);
+        if f_x < x.count_ones() {
             lbd = max_by(b * lbd, 1.0, |x, y| x.partial_cmp(y).unwrap());
         } else {
             lbd = min_by(a * lbd, (n - 1) as f64, |x, y| x.partial_cmp(y).unwrap());
         }
-        x = [x, y]
-            .into_iter()
-            .max_by(|x, y| x.count_ones().cmp(&y.count_ones()))
-            .unwrap();
         n_evals += ne;
     }
 

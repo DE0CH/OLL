@@ -183,7 +183,7 @@ dependencies = [
  "bitvec",
  "pyo3",
  "rand",
- "rand_chacha",
+ "rand_mt",
  "statrs",
 ]
 
@@ -343,6 +343,15 @@ checksum = "32cb0b9bc82b0a0876c2dd994a7e7a2683d3e7390ca40e6886785ef0c7e3ee31"
 dependencies = [
  "num-traits",
  "rand",
+]
+
+[[package]]
+name = "rand_mt"
+version = "4.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "88015c62ee73400068c6b1ba3e6fa7215c3f88fe882d208ab82d2e36d95c7aad"
+dependencies = [
+ "rand_core",
 ]
 
 [[package]]

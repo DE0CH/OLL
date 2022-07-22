@@ -23,7 +23,7 @@ impl NEvals {
         self.0 += 1;
     }
     fn make_big(&mut self) {
-        self.0 *= 2;
+        self.0 *= usize::max_value()
     }
 }
 

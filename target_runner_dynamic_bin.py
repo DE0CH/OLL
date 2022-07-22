@@ -2,7 +2,7 @@
 
 import sys
 from onell_algs_rs import onell_lambda
-from config import get_bins, suppress_stderr, get_cutoff
+from config import get_bins, suppress_stderr
 
 seed = int(sys.argv[3])
 instance = sys.argv[4]
@@ -24,9 +24,5 @@ for i in range(n):
 
 with suppress_stderr():
   c = onell_lambda(n, lbds, seed, bound)
-
-if c > get_cutoff(n):
-  c = 'Inf'
-
 print(c)
 print(c)

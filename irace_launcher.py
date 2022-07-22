@@ -73,6 +73,7 @@ class IraceCaller:
     process = subprocess.Popen([self.irace_bin_path, 
       "--parallel", str(threads), 
       "--seed", str(self.seed), 
+      "--capping", "1",
       "--bound-max", str(get_cutoff(self.size)),
       "--log-file", f"{self.log_file}", 
       "--scenario", f"scenario_{self.type_name}_{self.size}_{self.experiment_multiple}_{self.seed}.txt", 

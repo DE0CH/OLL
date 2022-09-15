@@ -134,3 +134,5 @@ def suppress_stderr():
         with redirect_stderr(fnull) as err:
             yield (err, )
   
+
+experiment_types = ['dynamic', 'static', 'binning_comparison']

@@ -11,7 +11,7 @@
 '''
 
 from config import N, sizes, experiment_types, descent_rates, get_cutoff, experiment_multiples_dynamic_bin, get_bins, experiment_multiples_dynamic, experiment_multiples_static
-from irace_launcher import IraceDecoder
+from decoder import IraceDecoder
 import json
 import os
 import re
@@ -69,7 +69,6 @@ for i in range(N):
             logging.exception('')
     else:
       experiment = experiment_type
-      tunning_budget = sizes[i]
       tuning_time = 0
       if experiment_type == 'dynamic':
         experiment_multiple = experiment_multiples_dynamic[i] 
@@ -77,27 +76,37 @@ for i in range(N):
       elif experiment_type == 'static': 
         experiment_multiple = experiment_multiples_static[i] 
         fx = [0]
+      elif experiment_type == 'dynamic_theory':
+        experiment_multiple = 0
+        fx = [i for i in range(n)]
       else:
         raise NotImplementedError()
-
+      tunning_budget = sizes[i] * experiment_multiple
+      
       max_evals = get_cutoff(n)
+
+      if experiment_type == 'dynamic_theory':
+        max_evals = 0
       invalid_data = False
-      file_name_match = f'irace_output_{experiment_type}_{n}_{experiment_multiple}_.*\\.txt'
-      file_not_found = True
-      for path in os.listdir('irace_output'):
-        if re.match(file_name_match, path):
-          file_not_found = False
-          decoder = IraceDecoder()
-          with open(os.path.join('irace_output', path)) as f:
-            for line in f:
-              decoder.note_line(line)
-          lbd = decoder.end()
-          if len(lbd) == 0:
-            print("invalid data for " + path)
-            invalid_data = True
-      if file_not_found:
-        print(f"File {experiment_type} {n} {experiment_multiple} not found, skipping")
-        invalid_data = True
+      if experiment_type == 'dynamic' or experiment_type == 'static':
+        file_name_match = f'irace_output_{experiment_type}_{n}_{experiment_multiple}_.*\\.txt'
+        file_not_found = True
+        for path in os.listdir('irace_output'):
+          if re.match(file_name_match, path):
+            file_not_found = False
+            decoder = IraceDecoder()
+            with open(os.path.join('irace_output', path)) as f:
+              for line in f:
+                decoder.note_line(line)
+            lbd = decoder.end()
+            if len(lbd) == 0:
+              print("invalid data for " + path)
+              invalid_data = True
+        if file_not_found:
+          print(f"File {experiment_type} {n} {experiment_multiple} not found, skipping")
+          invalid_data = True
+      elif experiment_type == 'dynamic_theory':
+        lbd = [(n / (n-f_x))**(1/2) for f_x in range(n)]
             
       try: 
         with open(os.path.join('irace_output', f'performance_{n}_{experiment_multiples_dynamic[i]}_{experiment_multiples_static[i]}.json')) as f:
@@ -106,6 +115,8 @@ for i in range(N):
             evaluation_result = r[0] 
           elif experiment_type == 'static':
             evaluation_result = r[2] 
+          elif experiment_type == 'dynamic_theory': 
+            evaluation_result = r[4]
           else:
             raise NotImplementedError()
       except FileNotFoundError:

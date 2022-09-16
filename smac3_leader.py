@@ -3,7 +3,6 @@ import config
 import threading
 import multiprocessing.pool 
 import multiprocessing
-import dotenv
 import os
 import logging 
 import send_email
@@ -11,7 +10,6 @@ import socket
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
-dotenv.load_dotenv()
 
 
 def run(i, machine):

@@ -19,7 +19,7 @@ from smac.scenario.scenario import Scenario
 from onell_algs import onell_dynamic_5params, onell_lambda, onell_dynamic_theory
 
 
-from config import seed_small as seed, N, sizes, experiment_multiples_dynamic, experiment_multiples_static, threads, EMAIL, trials, smac_instances, first_bin_portion, descend_rate
+from config import seed_small as seed, N, sizes, experiment_multiples_dynamic, experiment_multiples_static, threads, EMAIL, trials, smac_instances, first_bin_portion, descent_rate
 import json
 import argparse
 from dataclasses import dataclass
@@ -124,7 +124,7 @@ class SCDynamicBin(SmacCaller):
       remaining -= bin_size
       for _ in range(bin_size):
         self.bin_lookup.append(i)
-      bin_size = int(bin_size / descend_rate)
+      bin_size = int(bin_size / descent_rate)
       if bin_size < 1:
         bin_size = 1
       i += 1

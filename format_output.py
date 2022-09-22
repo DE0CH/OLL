@@ -42,7 +42,11 @@ for i in range(N):
             with open(os.path.join('irace_output', path)) as f:
               for line in f:
                 decoder.note_line(line)
-            lbd = decoder.end()
+            try:
+              lbd = decoder.end()
+            except:
+              print("unable to parse data for " + path)
+              invalid_data = True
             if len(lbd) == 0:
               print("invalid data for " + path)
               invalid_data = True
@@ -98,7 +102,11 @@ for i in range(N):
             with open(os.path.join('irace_output', path)) as f:
               for line in f:
                 decoder.note_line(line)
-            lbd = decoder.end()
+            try:
+              lbd = decoder.end()
+            except:
+              print("unable to parse data for " + path)
+              invalid_data = True
             if len(lbd) == 0:
               print("invalid data for " + path)
               invalid_data = True

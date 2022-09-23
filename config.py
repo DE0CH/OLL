@@ -43,6 +43,10 @@ sizes = [
   5000,
 ]
 
+sizes_reverse = {}
+for i, size in enumerate(sizes):
+  sizes_reverse[size] = i
+
 if SMALL == "small":
   experiment_multiples_dynamic = [
     50, 
@@ -68,6 +72,17 @@ else:
     25,
     10,
   ] 
+
+default_lbds = [
+  1.0077,
+  1.0734, 
+  6.5656,
+  4.8881,
+  6.9282,
+  6.7279,
+  8.0286,
+  1
+]
 
 if SMALL=="small":
   experiment_multiples_static = [50, 30, 20, 10, 10, 10]

@@ -21,16 +21,16 @@ else:
 if SMALL == "small":
   M = 3
 else:
-  M = 11
+  M = 13
 
 trials = 500 
-threads = int(multiprocessing.cpu_count() * 1.5)
+threads = int(multiprocessing.cpu_count() * 0.75)
 smac_instances = 36
 seed = 16950281577708742744
 seed_small = 2213319694
 descent_rate = 2
 
-descent_rates = [1.5 + (i*(1/(M-1))) for i in range(M)] 
+descent_rates = [1.5 + (i*(1/(11-1))) for i in range(11)] + [5, 8] 
 
 sizes = [
   10, 
@@ -42,10 +42,6 @@ sizes = [
   2000,
   5000,
 ]
-
-sizes_reverse = {}
-for i, size in enumerate(sizes):
-  sizes_reverse[size] = i
 
 if SMALL == "small":
   experiment_multiples_dynamic = [
@@ -73,23 +69,12 @@ else:
     10,
   ] 
 
-default_lbds = [
-  1.0077,
-  1.0734, 
-  6.5656,
-  4.8881,
-  6.9282,
-  6.7279,
-  8.0286,
-  1
-]
-
 if SMALL=="small":
   experiment_multiples_static = [50, 30, 20, 10, 10, 10]
 elif SMALL=="xsmall":
   experiment_multiples_static = [1, 1]
 else: 
-  experiment_multiples_static = [100] * N
+  experiment_multiples_static = experiment_multiples_dynamic
 
 experiment_multiples_dynamic_bin = experiment_multiples_dynamic
 

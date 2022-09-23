@@ -47,6 +47,7 @@ class IraceCaller:
     self.type_name = type_name
     self.irace_bin_path = os.path.join(subprocess.check_output(['Rscript', '-e', "cat(system.file(package=\'irace\', \'bin\', mustWork=TRUE))"]).decode('utf-8'), 'irace')
     self.instance_dir = f"Instances_{self.size}"
+    self.configurations_file = None
   
   def run(self):
     if not self.read_output:
@@ -67,6 +68,8 @@ class IraceCaller:
       f.write(f"boundPar = 2\n")
       f.write(f"testType = \"t-test\"\n")
       f.write(f"firstTest = 10\n")
+      if self.configurations_file:
+        f.write(f"configurationFile = {os.path.basename(self.configurations_file)}")
 
   def call_and_record(self): 
     output_f = open(f"irace_output/{self.output_file}.progress", 'w') 
@@ -148,8 +151,7 @@ class IraceCallerDynamicBin(IraceCaller):
       self.best_config[i] = lbd_bins[bin_lookup[i]]
   
 class IraceCallerBinningComparison(IraceCaller):
-  def __init__(self, size, experiment_multiple, descent_rate_j, seed):
-    type_name = "binning_comparison"
+  def __init__(self, size, experiment_multiple, descent_rate_j, seed, type_name="binning_comparison"):
     super().__init__(size, experiment_multiple, seed, type_name=type_name)
     self.descent_rate_j = descent_rate_j
     descent_rate = descent_rates[descent_rate_j]
@@ -175,6 +177,27 @@ class IraceCallerBinningComparison(IraceCaller):
     self.best_config = [1] * self.size
     for i in range(self.size):
       self.best_config[i] = lbd_bins[self.bin_lookup[i]]
+
+class IraceCallerBinningComparisonWithStatic(IraceCallerBinningComparison):
+  def __init__(self, size, experiment_multiple, descent_rate_j, default_value, seed, type_name="binning_comparison_with_static"):
+    descent_rate = descent_rates[descent_rate_j]
+    self.configurations_file = f"configurations_{type_name}_{size}_{experiment_multiple}_{descent_rate}_{seed}.txt"
+    self.default_value = default_value
+    super().__init__(size, experiment_multiple, descent_rate_j, seed, type_name=type_name)
+
+  def write_parameters(self):
+    with open(f"irace_output/{self.configurations_file}", 'w') as f:
+      row_lengths = []
+      for i in range(self.size):
+        row_length = max(len(f"{self.default_value:.3f}"), len(f"--lbd{i}"))
+        row_lengths.append(row_length)
+        f.write(f"--lbd{i}")
+        f.write(' ' * (row_length - len(f"--lbd{i}") + 1))
+      f.write('\n')
+      for i in range(self.size):
+        f.write(f"{self.default_value:.3f}")
+        f.write(' ' * (row_lengths[i] - len(f"{self.default_value:.3f}") + 1))
+    return super().write_parameters()
 
 def onell_eval(f, n, lbds, seed):
     if lbds:

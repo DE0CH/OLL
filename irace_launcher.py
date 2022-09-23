@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 import subprocess
-from config import N, sizes, experiment_multiples_dynamic, experiment_multiples_static, seed, threads, trials, descent_rates, get_bins, get_cutoff
+from config import N, sizes, experiment_multiples_dynamic, experiment_multiples_static, seed, threads, trials, descent_rates, get_bins, get_cutoff, default_lbds, sizes_reverse
 import numpy
 from multiprocessing import Pool
 from onell_algs import onell_lambda, onell_dynamic_theory, onell_dynamic_5params
@@ -69,7 +69,7 @@ class IraceCaller:
       f.write(f"testType = \"t-test\"\n")
       f.write(f"firstTest = 10\n")
       if self.configurations_file:
-        f.write(f"configurationFile = {os.path.basename(self.configurations_file)}")
+        f.write(f"configurationsFile = \"{os.path.basename(self.configurations_file)}\"")
 
   def call_and_record(self): 
     output_f = open(f"irace_output/{self.output_file}.progress", 'w') 
@@ -179,22 +179,23 @@ class IraceCallerBinningComparison(IraceCaller):
       self.best_config[i] = lbd_bins[self.bin_lookup[i]]
 
 class IraceCallerBinningComparisonWithStatic(IraceCallerBinningComparison):
-  def __init__(self, size, experiment_multiple, descent_rate_j, default_value, seed, type_name="binning_comparison_with_static"):
+  def __init__(self, size, experiment_multiple, descent_rate_j, seed, type_name="binning_comparison_with_static"):
     descent_rate = descent_rates[descent_rate_j]
-    self.configurations_file = f"configurations_{type_name}_{size}_{experiment_multiple}_{descent_rate}_{seed}.txt"
+    default_value = default_lbds[sizes_reverse[size]]
     self.default_value = default_value
     super().__init__(size, experiment_multiple, descent_rate_j, seed, type_name=type_name)
+    self.configurations_file = f"configurations_{type_name}_{size}_{experiment_multiple}_{descent_rate}_{default_value}_{seed}.txt"
 
   def write_parameters(self):
     with open(f"irace_output/{self.configurations_file}", 'w') as f:
       row_lengths = []
-      for i in range(self.size):
-        row_length = max(len(f"{self.default_value:.3f}"), len(f"--lbd{i}"))
+      for i in range(len(self.bins)):
+        row_length = max(len(f"{self.default_value:.3f}"), len(f"lbd{i}"))
         row_lengths.append(row_length)
-        f.write(f"--lbd{i}")
-        f.write(' ' * (row_length - len(f"--lbd{i}") + 1))
+        f.write(f"lbd{i}")
+        f.write(' ' * (row_length - len(f"lbd{i}") + 1))
       f.write('\n')
-      for i in range(self.size):
+      for i in range(len(self.bins)):
         f.write(f"{self.default_value:.3f}")
         f.write(' ' * (row_lengths[i] - len(f"{self.default_value:.3f}") + 1))
     return super().write_parameters()

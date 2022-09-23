@@ -4,3 +4,4 @@ sendgrid
 smac
 ConfigSpace
 maturin
+scipy 

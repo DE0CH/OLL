@@ -11,6 +11,8 @@ from enum import Enum
 from uuid import uuid4
 from queue import Queue
 from threading import Event
+import functools
+import logging
 
 rng = numpy.random.default_rng(seed)
 mock = False
@@ -48,26 +50,42 @@ def worker(name):
       return
     else:
       s, cv = job_queue.get()
+      return_codes = []
       s = f'docker build -t irace . && docker run --rm {("--env SMALL="+os.getenv("SMALL") + " ") if os.getenv("SMALL") else ""}-v {tmp_dir_name}:/usr/app irace ' + s
       print(f"{name} is indeed on")
-      subprocess.run(['ssh', name, f'mkdir -p {os.path.dirname(tmp_dir_name)}'])
-      subprocess.run(['rsync', '-azvPI', '--delete', f"{os.getcwd()}/", f'{name}:{tmp_dir_name}'], stdout=subprocess.DEVNULL)
-      with open(f"logs/{name}_stdout.log", "wb") as stdoutf:
-        with open(f"logs/{name}_stderr.log", "wb") as stderrf:
-          print(f"Running {s} on {name}")
-          subprocess.run(['ssh', name, f"cd {tmp_dir_name} && " + s], stdout=stdoutf, stderr=stderrf)
-          print(f"Finished running on {name}") 
-      subprocess.run(['rsync', '-azvP', f'{name}:{tmp_dir_name}/', '.'], stdout=subprocess.DEVNULL)
-      cv.set()
-      job_queue.task_done()
+      try:
+        return_codes.append(subprocess.run(['ssh', name, f'mkdir -p {os.path.dirname(tmp_dir_name)}']).returncode)
+        return_codes.append(subprocess.run(['rsync', '-azvPI', '--delete', f"{os.getcwd()}/", f'{name}:{tmp_dir_name}'], stdout=subprocess.DEVNULL).returncode)
+        with open(f"logs/{name}_stdout.log", "wb") as stdoutf:
+          with open(f"logs/{name}_stderr.log", "wb") as stderrf:
+            print(f"Running {s} on {name}")
+            return_codes.append(subprocess.run(['ssh', name, f"cd {tmp_dir_name} && " + s], stdout=stdoutf, stderr=stderrf).returncode)
+            print(f"Finished running on {name}") 
+        return_codes.append(subprocess.run(['rsync', '-azvP', f'{name}:{tmp_dir_name}/', '.'], stdout=subprocess.DEVNULL).returncode)
+        rerun = functools.reduce(lambda x, y: x | y, return_codes) != 0
+      except:
+        logging.exception("except occured, retrying")
+        rerun = True
+      if rerun:
+        print(f"putting {s} back into the queue because it has failed")
+        job_queue.put((s, cv))
+        job_queue.task_done()
+      else:
+        print(f"{s} completed successfully on {name}")
+        cv.set()
+        job_queue.task_done()
 
 def run_binning_comparison_single(i, j, tuner_seed, grapher_seed):
+  if i < N-1:
+    return
   s = f'python3 irace_binning_comparison.py {i} {j} {tuner_seed} {grapher_seed}'
   cv = Event()
   job_queue.put((s, cv))
   cv.wait()
 
 def run_binning_comparison_full(i, tuner_seeds, grapher_seeds):
+  if i < N-1:
+    return
   tuning_runs = [Thread(target=run_binning_comparison_single, args=(i, j, tuner_seeds[j], grapher_seeds[j])) for j in range(M)]
   for run in tuning_runs:
     run.start()
@@ -80,6 +98,8 @@ def run_binning_comparison_full(i, tuner_seeds, grapher_seeds):
 
 
 def run_baseline_full(i, dynamic_seed, dynamic_bin_seed, static_seed, grapher_seed):
+  if i < N - 2:
+    return
   dynamic_cv = Event()
   job_queue.put((f'python3 irace_dynamic.py {i} {dynamic_seed}', dynamic_cv))
   dynamic_bin_cv = Event()
@@ -99,7 +119,7 @@ def main(job_type: JobType):
     Thread(target=worker, args=(f"mock-pc", ), daemon=True).start()
     Thread(target=worker, args=(f"mock-pc2", ), daemon=True).start()
   else:
-    for i in range(80):
+    for i in range(1, 80):
       Thread(target=worker, args=(f"pc8-{i:03d}-l", ), daemon=True).start()
   runs = []
   if job_type == JobType.baseline or job_type == JobType.full:

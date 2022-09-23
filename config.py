@@ -5,7 +5,7 @@ try:
 except:
   pass
 import json
-from matplotlib import pyplot as plt
+
 
 
 SMALL = os.getenv("SMALL", None)
@@ -111,6 +111,7 @@ def onell_dynamic_theory_positional(size, seed):
   return performance
 
 def graph(json_path, png_path, dynamic_lbd_performance, dynamic_lbd_bin_performance, static_lbd_performance, one_lbd_performance, dynamic_theory_performance, dynamic_5params_performance):
+  from matplotlib import pyplot as plt
   data = (dynamic_lbd_performance, dynamic_lbd_bin_performance, static_lbd_performance, one_lbd_performance, dynamic_theory_performance, dynamic_5params_performance)
   with open(json_path, 'w') as f:
     json.dump(data, f)
@@ -120,14 +121,9 @@ def graph(json_path, png_path, dynamic_lbd_performance, dynamic_lbd_bin_performa
   figure.savefig(png_path, dpi=300)
 
 def get_cutoff(size):
-  if size <= 2500:
-    return 150000
-  elif 2500 < size <= 5000:
-    return 200000
-  elif 2500 < size <= 8000:
+  if size == 5000:
     return 250000
-  else:
-    return 300000
+  return 99999999
 
 from contextlib import contextmanager,redirect_stderr,redirect_stdout
 from os import devnull
@@ -139,3 +135,5 @@ def suppress_stderr():
         with redirect_stderr(fnull) as err:
             yield (err, )
   
+
+experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison']

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 sudo apt-get update 
-sudo apt-get install -y python3 python3-pip r-base curl build-essential
+sudo apt-get install -y python3 python3-pip r-base curl build-essential htop
 
 curl https://sh.rustup.rs -sSf | bash -s -- -y
 

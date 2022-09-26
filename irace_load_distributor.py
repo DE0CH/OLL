@@ -13,6 +13,7 @@ from queue import Queue
 from threading import Event
 import functools
 import logging
+import time
 
 rng = numpy.random.default_rng(seed)
 mock = False
@@ -27,6 +28,12 @@ class JobType(Enum):
     return self.value
 
 def worker(name):
+  while True:
+    inner_worker(name)
+    print(f"{name} has been dropped, retrying after 1 minute")
+    time.sleep(60)
+
+def inner_worker(name):
   while True:
     print(f"{name} waiting for job")
     if mock:

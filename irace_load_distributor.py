@@ -84,16 +84,12 @@ def inner_worker(name):
         job_queue.task_done()
 
 def run_binning_comparison_single(i, j, tuner_seed, grapher_seed):
-  if i < N-1:
-    return
   s = f'python3 irace_binning_comparison.py {i} {j} {tuner_seed} {grapher_seed}'
   cv = Event()
   job_queue.put((s, cv))
   cv.wait()
 
 def run_binning_comparison_full(i, tuner_seeds, grapher_seeds):
-  if i < N-1:
-    return
   tuning_runs = [Thread(target=run_binning_comparison_single, args=(i, j, tuner_seeds[j], grapher_seeds[j])) for j in range(M)]
   for run in tuning_runs:
     run.start()
@@ -123,8 +119,6 @@ def run_binning_comparison_with_static_full(i, tuner_seeds, grapher_seeds):
   cv.wait()
 
 def run_baseline_full(i, dynamic_seed, dynamic_bin_seed, static_seed, grapher_seed):
-  if i < N - 2:
-    return
   dynamic_cv = Event()
   job_queue.put((f'python3 irace_dynamic.py {i} {dynamic_seed}', dynamic_cv))
   dynamic_bin_cv = Event()

@@ -24,7 +24,7 @@ else:
   M = 13
 
 trials = 500 
-threads = int(multiprocessing.cpu_count() * 1.5)
+threads = int(multiprocessing.cpu_count() * 0.75)
 smac_instances = 36
 seed = 16950281577708742744
 seed_small = 2213319694
@@ -81,7 +81,7 @@ default_lbds = [
   6.9282,
   6.7279,
   8.0286,
-  1
+  8.7281
 ]
 
 if SMALL=="small":
@@ -89,7 +89,7 @@ if SMALL=="small":
 elif SMALL=="xsmall":
   experiment_multiples_static = [1, 1]
 else: 
-  experiment_multiples_static = experiment_multiples_dynamic
+  experiment_multiples_static = [100] * (N-1) + [experiment_multiples_dynamic[-1]]
 
 experiment_multiples_dynamic_bin = experiment_multiples_dynamic
 
@@ -151,4 +151,13 @@ def suppress_stderr():
             yield (err, )
   
 
-experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison']
+experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison', 'binning_comparison_with_static']
+
+def load_or_run_binning_comaparison_validation(file_name, best_config, seeds, pool):
+  try:
+    with open(file_name) as f:
+      performances = json.load(f)
+  except:
+    performances = pool.starmap(onell_lambda_positional, zip([sizes[i]]*trials, [best_config] * trials, seeds))
+    with open(file_name, "w") as f:
+      json.dump(performances, f)

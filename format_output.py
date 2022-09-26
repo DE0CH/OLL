@@ -24,7 +24,9 @@ data = []
 for i in range(N):
   n = sizes[i]
   for experiment_type in experiment_types:
-    if experiment_type == 'binning_comparison':
+    if experiment_type == 'binning_comparison' or experiment_type == 'binning_comparison_with_static':
+      if experiment_type == 'binning_comparison_with_static' and n == 5000:
+        continue
       for binning_rate in descent_rates:
         experiment = f'{experiment_type}{binning_rate}'
         max_evals = get_cutoff(n)
@@ -36,7 +38,7 @@ for i in range(N):
         fx = fx[:-1]
         invalid_data = False
         for path in os.listdir('irace_output'):
-          file_name_match = f'irace_output_binning_comparison_{n}_{experiment_multiples_dynamic_bin[i]}_{binning_rate}_.*\\.txt'
+          file_name_match = f'irace_output_{experiment_type}_{n}_{experiment_multiples_dynamic_bin[i]}_{binning_rate}_.*\\.txt'
           if re.match(file_name_match, path):
             decoder = IraceDecoder()
             with open(os.path.join('irace_output', path)) as f:
@@ -52,7 +54,7 @@ for i in range(N):
               invalid_data = True
 
         for path in os.listdir('irace_output'):
-          if re.match(f'performance_binning_comparison_{n}_{experiment_multiples_dynamic_bin[i]}_{binning_rate}_.*\\.json', path):
+          if re.match(f'performance_{experiment_type}_{n}_{experiment_multiples_dynamic_bin[i]}_{binning_rate}_.*\\.json', path):
             with open(os.path.join('irace_output', path)) as f:
               evaluation_result = json.load(f)
         if not invalid_data:

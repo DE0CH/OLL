@@ -153,11 +153,11 @@ def suppress_stderr():
 
 experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison', 'binning_comparison_with_static']
 
-def load_or_run_binning_comaparison_validation(file_name, best_config, seeds, pool):
+def load_or_run_binning_comaparison_validation(size, file_name, best_config, seeds, pool):
   try:
     with open(file_name) as f:
       performances = json.load(f)
   except:
-    performances = pool.starmap(onell_lambda_positional, zip([sizes[i]]*trials, [best_config] * trials, seeds))
+    performances = pool.starmap(onell_lambda_positional, zip([size]*trials, [best_config] * trials, seeds))
     with open(file_name, "w") as f:
       json.dump(performances, f)

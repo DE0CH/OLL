@@ -14,6 +14,7 @@ from threading import Event
 import functools
 import logging
 import time
+import sys
 
 rng = numpy.random.default_rng(seed)
 job_queue = Queue()
@@ -128,6 +129,7 @@ def main(job_type: JobType):
   job_queue.join()
 
 if __name__ == '__main__':
+  print(sys.argv)
   parser = argparse.ArgumentParser()
   parser.add_argument('job_type', type=JobType, choices=list(JobType), default=JobType.baseline, nargs='?')
   parser.add_argument('--np', default=False, action='store_true')

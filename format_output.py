@@ -25,8 +25,6 @@ for i in range(N):
   n = sizes[i]
   for experiment_type in experiment_types:
     if experiment_type == 'binning_comparison' or experiment_type == 'binning_comparison_with_static':
-      if experiment_type == 'binning_comparison_with_static' and n == 5000:
-        continue
       for binning_rate in descent_rates:
         experiment = f'{experiment_type}{binning_rate}'
         max_evals = get_cutoff(n)

@@ -53,9 +53,15 @@ class IraceCaller:
     if not self.read_output:
       self.write_parameters()
       self.call_and_record()
+      self.translate()
     else:
-      self.read_from_output()
-    self.translate()
+      try:
+        self.read_from_output()
+        self.translate()
+      except: # corrupt data, try to recover
+        self.write_parameters()
+        self.call_and_record()
+        self.translate()
   
   def write_parameters(self):
     with open(f"irace_output/{self.instance_dir}/1.txt", "w") as f:

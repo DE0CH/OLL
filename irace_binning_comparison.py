@@ -13,7 +13,7 @@ def main(i, j, tuner_seed, grapher_seed):
     json.dump(caller.best_config, f)
   pool = Pool(threads)
   rng = numpy.random.default_rng(tuner_seed)
-  load_or_run_binning_comaparison_validation(f"irace_output/performance_binning_comparison_{sizes[i]}_{experiment_multiples_dynamic_bin[i]}_{descent_rates[j]}_{tuner_seed}_{grapher_seed}.json", caller.best_config, next_randoms(rng, trials), pool)
+  load_or_run_binning_comaparison_validation(sizes[i], f"irace_output/performance_binning_comparison_{sizes[i]}_{experiment_multiples_dynamic_bin[i]}_{descent_rates[j]}_{tuner_seed}_{grapher_seed}.json", caller.best_config, next_randoms(rng, trials), pool)
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()

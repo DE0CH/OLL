@@ -18,7 +18,7 @@ elif SMALL == "xsmall":
 else:
   N = 8
 
-if SMALL == "small":
+if SMALL == "small" or SMALL == 'xsmall':
   M = 3
 else:
   M = 13

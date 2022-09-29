@@ -58,6 +58,8 @@ class IraceCaller:
       try:
         self.read_from_output()
         self.translate()
+        if len(self.best_config) != self.size:
+          raise ValueError("Incorrect best config size")
       except: # corrupt data, try to recover
         self.write_parameters()
         self.call_and_record()

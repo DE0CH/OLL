@@ -30,7 +30,7 @@ seed = 16950281577708742744
 seed_small = 2213319694
 descent_rate = 2
 
-descent_rates = [1.5 + (i*(1/(11-1))) for i in range(11)] + [5, 8] 
+descent_rates = ([1.5 + (i*(1/(11-1))) for i in range(11)] + [5, 8])[:M]
 
 sizes = [
   10, 

@@ -5,7 +5,7 @@ import sys
 
 def main(i, tuner_seeds, grapher_seeds):
   graph_json_paths = [f"irace_output/performance_binning_comparison_with_static_{sizes[i]}_{experiment_multiples_dynamic_bin[i]}_{descent_rates[j]}_{tuner_seeds[j]}_{default_lbds[i]}_{grapher_seeds[j]}.json" for j in range(M)]
-  png_path = f"irace_output/performance_binning_comparison_{sizes[i]}_{experiment_multiples_dynamic_bin[i]}.png"
+  png_path = f"irace_output/performance_binning_comparison_with_static_{sizes[i]}_{experiment_multiples_dynamic_bin[i]}.png"
   performances = [None for j in range(M)]
   for j in range(M):
     with open(graph_json_paths[j]) as f:

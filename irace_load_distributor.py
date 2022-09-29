@@ -24,6 +24,7 @@ class JobType(Enum):
   baseline = 'baseline'
   binning = 'binning'
   binning_with_static = 'binning_with_static'
+  dynamic_with_static = 'dynamic_with_static'
   full = 'full'
   def __str__(self):
     return self.value
@@ -92,6 +93,11 @@ def run_baseline_full(i, dynamic_seed, dynamic_bin_seed, static_seed, grapher_se
   job_queue.put((f"python3 irace_grapher.py {i} {dynamic_seed} {dynamic_bin_seed} {static_seed} {grapher_seed}", grapher_cv))
   grapher_cv.wait()
   
+def run_dynamic_with_static_full(i, seed):
+  cv = Event()
+  job_queue.put((f'python3 irace_dynamic_with_static.py {i} {seed}', cv))
+  cv.wait()
+
 def main(job_type: JobType):
   Thread(target=worker, args=(f"mock-pc", ), daemon=True).start()
   Thread(target=worker, args=(f"mock-pc2", ), daemon=True).start()
@@ -122,6 +128,10 @@ def main(job_type: JobType):
   else:
     for i in range(N):
       (i, list(rng.integers(1<<15, (1<<16)-1, M)), list(rng.integers(1<<15, (1<<16)-1, M)))
+  if job_type == JobType.dynamic_with_static or job_type == JobType.full:
+    runs += [Thread(target=run_dynamic_with_static_full, args=(i, rng.integers(1<<15, (1<<16)-1))) for i in range(N)]
+  else:
+    [(i, rng.integers(1<<15, (1<<16)-1)) for i in range(N)]
   for thread in runs:
     thread.start()
   for thread in runs:

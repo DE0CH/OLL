@@ -24,7 +24,7 @@ data = []
 for i in range(N):
   n = sizes[i]
   for experiment_type in experiment_types:
-    if experiment_type == 'binning_comparison':
+    if experiment_type == 'binning_comparison' or experiment_type == 'binning_comparison_with_static':
       for binning_rate in descent_rates:
         experiment = f'{experiment_type}{binning_rate}'
         max_evals = get_cutoff(n)
@@ -36,7 +36,7 @@ for i in range(N):
         fx = fx[:-1]
         invalid_data = False
         for path in os.listdir('irace_output'):
-          file_name_match = f'irace_output_binning_comparison_{n}_{experiment_multiples_dynamic_bin[i]}_{binning_rate}_.*\\.txt'
+          file_name_match = f'irace_output_{experiment_type}_{n}_{experiment_multiples_dynamic_bin[i]}_{binning_rate}_.*\\.txt'
           if re.match(file_name_match, path):
             decoder = IraceDecoder()
             with open(os.path.join('irace_output', path)) as f:
@@ -52,7 +52,7 @@ for i in range(N):
               invalid_data = True
 
         for path in os.listdir('irace_output'):
-          if re.match(f'performance_binning_comparison_{n}_{experiment_multiples_dynamic_bin[i]}_{binning_rate}_.*\\.json', path):
+          if re.match(f'performance_{experiment_type}_{n}_{experiment_multiples_dynamic_bin[i]}_{binning_rate}_.*\\.json', path):
             with open(os.path.join('irace_output', path)) as f:
               evaluation_result = json.load(f)
         if not invalid_data:
@@ -83,6 +83,9 @@ for i in range(N):
       elif experiment_type == 'dynamic_theory':
         experiment_multiple = 0
         fx = [i for i in range(n)]
+      elif experiment_type == 'dynamic_with_static':
+        experiment_multiple = experiment_multiples_dynamic[i] 
+        fx = list(range(n))
       else:
         raise NotImplementedError()
       tunning_budget = sizes[i] * experiment_multiple
@@ -92,7 +95,7 @@ for i in range(N):
       if experiment_type == 'dynamic_theory':
         max_evals = 0
       invalid_data = False
-      if experiment_type == 'dynamic' or experiment_type == 'static':
+      if experiment_type == 'dynamic' or experiment_type == 'static' or experiment_type == 'dynamic_with_static':
         file_name_match = f'irace_output_{experiment_type}_{n}_{experiment_multiple}_.*\\.txt'
         file_not_found = True
         for path in os.listdir('irace_output'):
@@ -115,21 +118,30 @@ for i in range(N):
           invalid_data = True
       elif experiment_type == 'dynamic_theory':
         lbd = [(n / (n-f_x))**(1/2) for f_x in range(n)]
-            
-      try: 
-        with open(os.path.join('irace_output', f'performance_{n}_{experiment_multiples_dynamic[i]}_{experiment_multiples_static[i]}.json')) as f:
-          r = json.load(f)
-          if experiment_type == 'dynamic':
-            evaluation_result = r[0] 
-          elif experiment_type == 'static':
-            evaluation_result = r[2] 
-          elif experiment_type == 'dynamic_theory': 
-            evaluation_result = r[4]
-          else:
-            raise NotImplementedError()
-      except FileNotFoundError:
-        print(f"file not found for {experiment_type} {n} {experiment_multiple}, skipping")
-        invalid_data = True
+      else:
+        raise NotImplementedError()
+      if experiment_type == 'dynamic' or experiment_type == 'static' or experiment_type == 'dynamic_theory':
+        try: 
+          with open(os.path.join('irace_output', f'performance_{n}_{experiment_multiples_dynamic[i]}_{experiment_multiples_static[i]}.json')) as f:
+            r = json.load(f)
+            if experiment_type == 'dynamic':
+              evaluation_result = r[0] 
+            elif experiment_type == 'static':
+              evaluation_result = r[2] 
+            elif experiment_type == 'dynamic_theory': 
+              evaluation_result = r[4]
+            else:
+              raise NotImplementedError()
+        except FileNotFoundError:
+          print(f"file not found for {experiment_type} {n} {experiment_multiple}, skipping")
+          invalid_data = True
+      elif experiment_type == 'dynamic_with_static':
+        for path in os.listdir('irace_output'):
+          if re.match(f'performance_{experiment_type}_{n}_{experiment_multiples_dynamic[i]}_.*\\.json', path):
+            with open(os.path.join('irace_output', path)) as f:
+              evaluation_result = json.load(f)      
+      else:
+        raise NotImplementedError()
       if not invalid_data:
         try:
           if len(fx) != len(lbd):

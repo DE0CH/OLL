@@ -44,6 +44,10 @@ for i in range(N):
                 decoder.note_line(line)
             try:
               lbd = decoder.end()
+              if invalid_data:
+                print("recovered from invalid data for" + path)
+                invalid_data = False
+              break
             except:
               print("unable to parse data for " + path)
               invalid_data = True
@@ -107,6 +111,10 @@ for i in range(N):
                 decoder.note_line(line)
             try:
               lbd = decoder.end()
+              if invalid_data:
+                print("recovered from invalid data for" + path)
+                invalid_data = False
+              break
             except:
               print("unable to parse data for " + path)
               invalid_data = True

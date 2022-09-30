@@ -68,7 +68,7 @@ for i in range(N):
                 'n': n,
                 'experiment': experiment,
                 'max_evals': max_evals,
-                'tuning_budge': tunning_budget,
+                'tuning_budget': tunning_budget,
                 'tuning_time': 0,
                 'evaluation_results': evaluation_result,
                 'best_configuration': {'fx': fx, 'lbd': lbd}
@@ -159,7 +159,7 @@ for i in range(N):
               'n': n,
               'experiment': experiment,
               'max_evals': max_evals,
-              'tuning_budge': tunning_budget,
+              'tuning_budget': tunning_budget,
               'tuning_time': 0,
               'evaluation_results': evaluation_result,
               'best_configuration': {'fx': fx, 'lbd': lbd}

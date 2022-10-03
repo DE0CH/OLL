@@ -5,3 +5,4 @@ smac
 ConfigSpace
 maturin
 scipy 
+psutil

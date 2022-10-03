@@ -3,7 +3,7 @@ import subprocess
 import threading
 from threading import Thread
 import pathlib
-from config import graph, seed, N, M
+from config import graph, seed, N, M, min_cpu_usage, max_cpu_usage
 import numpy
 import argparse
 import os
@@ -15,10 +15,16 @@ import functools
 import logging
 import time
 import sys
+import psutil
 
 rng = numpy.random.default_rng(seed)
 job_queue = Queue()
 no_op = False
+current_worker_count = 0
+target_worker_count = 0
+worker_count_lock = threading.Lock()
+woker_serial = 0
+logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(levelname)s: %(message)s',  datefmt="%m/%d/%Y %I:%M:%S %p %Z")
 
 class JobType(Enum):
   baseline = 'baseline'
@@ -32,16 +38,19 @@ class JobType(Enum):
 def worker(name):
   while True:
 
-    print(f"{name} waiting for job")
+    logging.info(f"{name} waiting for job")
     s, cv = job_queue.get()
-    print(f"got job: {s}")
-    print(f"running {s}")
+    logging.info(f"{name}: got job: {s}")
+    logging.info(f"{name}: running {s}")
     if not no_op:
       subprocess.run(s, shell=True, capture_output=True)
-    print(f"finished running {s}")
+    logging.info(f"{name}: finished running {s}")
     cv.set()
     job_queue.task_done()
-    continue
+    global current_worker_count, target_worker_count, worker_count_lock
+    with worker_count_lock:
+      if target_worker_count < current_worker_count:
+        logging.info(f"dropping woker {s} because target worker needs to be reduced.")
 
 def run_binning_comparison_single(i, j, tuner_seed, grapher_seed):
   s = f'python3 irace_binning_comparison.py {i} {j} {tuner_seed} {grapher_seed}'
@@ -98,9 +107,35 @@ def run_dynamic_with_static_full(i, tuner_seed, grapher_seed):
   job_queue.put((f'python3 irace_dynamic_with_static.py {i} {tuner_seed} {grapher_seed}', cv))
   cv.wait()
 
+def worker_adjustment():
+  global target_worker_count, current_worker_count, woker_serial, worker_count_lock
+  while True:
+    time.sleep(20)
+    cpu_usage = psutil.cpu_percent() / 100
+    if cpu_usage < min_cpu_usage:
+      with worker_count_lock:
+        target_worker_count = current_worker_count + 1
+        logging.info(f"increase worker count to {current_worker_count + 1}")
+        if target_worker_count > current_worker_count:
+          for i in range(target_worker_count > current_worker_count):
+            Thread(target=worker, args=(f"mock-pc{woker_serial}", ), daemon=True).start()
+            current_worker_count += 1
+            woker_serial += 1
+    elif cpu_usage > max_cpu_usage:
+      with worker_count_lock:
+        if target_worker_count != current_worker_count - 1:
+          logging.info(f"down adjusting target workder count {current_worker_count - 1}")
+        target_worker_count = current_worker_count - 1
+      
+
 def main(job_type: JobType):
-  for i in range(10):
+  for i in range(2):
+    global target_worker_count, current_worker_count, woker_serial
     Thread(target=worker, args=(f"mock-pc{i}", ), daemon=True).start()
+    target_worker_count = 2
+    current_worker_count = 2
+    woker_serial = 2
+  Thread(target=worker_adjustment, args=(), daemon=True).start()
   runs = []
   if job_type == JobType.baseline or job_type == JobType.full:
     runs += [Thread(target=run_baseline_full, args=(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1))) for i in range(N)]
@@ -139,7 +174,7 @@ def main(job_type: JobType):
   job_queue.join()
 
 if __name__ == '__main__':
-  print(sys.argv)
+  logging.info(sys.argv)
   parser = argparse.ArgumentParser()
   parser.add_argument('job_type', type=JobType, choices=list(JobType), default=JobType.baseline, nargs='?')
   parser.add_argument('--np', default=False, action='store_true')

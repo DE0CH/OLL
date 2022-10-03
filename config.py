@@ -161,3 +161,6 @@ def load_or_run_binning_comaparison_validation(size, file_name, best_config, see
     performances = pool.starmap(onell_lambda_positional, zip([size]*trials, [best_config] * trials, seeds))
     with open(file_name, "w") as f:
       json.dump(performances, f)
+
+min_cpu_usage = 0.75
+max_cpu_usage = 0.95

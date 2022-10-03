@@ -18,19 +18,19 @@ elif SMALL == "xsmall":
 else:
   N = 8
 
-if SMALL == "small":
+if SMALL == "small" or SMALL == 'xsmall':
   M = 3
 else:
-  M = 11
+  M = 13
 
 trials = 500 
-threads = int(multiprocessing.cpu_count() * 1.5)
+threads = int(multiprocessing.cpu_count() * 0.75)
 smac_instances = 36
 seed = 16950281577708742744
 seed_small = 2213319694
 descent_rate = 2
 
-descent_rates = [1.5 + (i*(1/(M-1))) for i in range(M)] 
+descent_rates = ([1.5 + (i*(1/(11-1))) for i in range(11)] + [5, 8])[:M]
 
 sizes = [
   10, 
@@ -42,6 +42,10 @@ sizes = [
   2000,
   5000,
 ]
+
+sizes_reverse = {}
+for i, size in enumerate(sizes):
+  sizes_reverse[size] = i
 
 if SMALL == "small":
   experiment_multiples_dynamic = [
@@ -69,12 +73,23 @@ else:
     10,
   ] 
 
+default_lbds = [
+  1.0077,
+  1.0734, 
+  6.5656,
+  4.8881,
+  6.9282,
+  6.7279,
+  8.0286,
+  8.7281
+]
+
 if SMALL=="small":
   experiment_multiples_static = [50, 30, 20, 10, 10, 10]
 elif SMALL=="xsmall":
   experiment_multiples_static = [1, 1]
 else: 
-  experiment_multiples_static = [100] * N
+  experiment_multiples_static = [100] * (N-1) + [experiment_multiples_dynamic[-1]]
 
 experiment_multiples_dynamic_bin = experiment_multiples_dynamic
 
@@ -136,4 +151,13 @@ def suppress_stderr():
             yield (err, )
   
 
-experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison']
+experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison', 'binning_comparison_with_static']
+
+def load_or_run_binning_comaparison_validation(size, file_name, best_config, seeds, pool):
+  try:
+    with open(file_name) as f:
+      performances = json.load(f)
+  except:
+    performances = pool.starmap(onell_lambda_positional, zip([size]*trials, [best_config] * trials, seeds))
+    with open(file_name, "w") as f:
+      json.dump(performances, f)

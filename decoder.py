@@ -11,4 +11,7 @@ class IraceDecoder:
   def end(self):
     line = self.lines[0]
     line = line.strip().split()[1:]
-    return [float(line[i]) for i in range(len(line)) if i%2 == 1]
+    res = [float(line[i]) for i in range(len(line)) if i%2 == 1]
+    if len(res) == 0:
+      raise ValueError("res length is 0")
+    return res

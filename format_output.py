@@ -45,14 +45,15 @@ for i in range(N):
             try:
               lbd = decoder.end()
               if invalid_data:
-                print("recovered from invalid data for" + path)
+                print("recovered from invalid data for " + path)
                 invalid_data = False
-              break
+              if len(lbd) == 0:
+                print("invalid data for " + path)
+                invalid_data = True
+              elif not invalid_data:
+                break
             except:
               print("unable to parse data for " + path)
-              invalid_data = True
-            if len(lbd) == 0:
-              print("invalid data for " + path)
               invalid_data = True
 
         for path in os.listdir('irace_output'):
@@ -112,14 +113,15 @@ for i in range(N):
             try:
               lbd = decoder.end()
               if invalid_data:
-                print("recovered from invalid data for" + path)
+                print("recovered from invalid data for " + path)
                 invalid_data = False
-              break
+              if len(lbd) == 0:
+                print("invalid data for " + path)
+                invalid_data = True
+              elif not invalid_data:
+                break
             except:
               print("unable to parse data for " + path)
-              invalid_data = True
-            if len(lbd) == 0:
-              print("invalid data for " + path)
               invalid_data = True
         if file_not_found:
           print(f"File {experiment_type} {n} {experiment_multiple} not found, skipping")

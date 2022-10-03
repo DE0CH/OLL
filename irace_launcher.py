@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 
+from genericpath import isfile
 import subprocess
 from config import N, sizes, experiment_multiples_dynamic, experiment_multiples_static, seed, threads, trials, descent_rates, get_bins, get_cutoff, default_lbds, sizes_reverse
 import numpy
@@ -11,26 +12,13 @@ from pathlib import Path
 import os
 from utils import graph as _graph
 import argparse
+import shutil
+from decoder import IraceDecoder
 
 rng = numpy.random.default_rng(seed)
 best_dynamic_config = [None] * N
 best_static_config = [None] * N
 
-
-class IraceDecoder:
-  def __init__(self):
-    self.lines = []
-  
-  def note_line(self, line):
-    if line.strip().startswith("# Best configurations as commandlines"):
-      self.lines = []
-    else:
-      self.lines.append(line)
-  
-  def end(self):
-    line = self.lines[0]
-    line = line.strip().split()[1:]
-    return [float(line[i]) for i in range(len(line)) if i%2 == 1]
 
 class IraceCaller:
   def __init__(self, size, experiment_multiple, seed, type_name):
@@ -58,10 +46,13 @@ class IraceCaller:
       try:
         self.read_from_output()
         self.translate()
+        if len(self.best_config) != self.size:
+          raise ValueError("Incorrect best config size")
       except: # corrupt data, try to recover
         self.write_parameters()
         self.call_and_record()
         self.translate()
+
   
   def write_parameters(self):
     with open(f"irace_output/{self.instance_dir}/1.txt", "w") as f:
@@ -77,9 +68,9 @@ class IraceCaller:
       if self.configurations_file:
         f.write(f"configurationsFile = \"{os.path.basename(self.configurations_file)}\"")
 
-  def call_and_record(self): 
+  def call_and_record(self, read_recovery=True): 
     output_f = open(f"irace_output/{self.output_file}.progress", 'w') 
-    process = subprocess.Popen([self.irace_bin_path, 
+    args = [
       "--parallel", str(threads), 
       "--seed", str(self.seed), 
       "--capping", "1",
@@ -87,8 +78,13 @@ class IraceCaller:
       "--log-file", f"{self.log_file}", 
       "--scenario", f"scenario_{self.type_name}_{self.size}_{self.experiment_multiple}_{self.seed}.txt", 
       "--train-instances-dir", self.instance_dir,
-      "--parameter-file", os.path.basename(self.parameters_file)],
-    stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="irace_output")
+      "--parameter-file", os.path.basename(self.parameters_file)
+    ]
+    if os.path.isfile(f'irace_output/{self.log_file}') and read_recovery:
+      shutil.copyfile(f'irace_output/{self.log_file}', f'irace_output/{self.log_file}.progress')
+      args += ['--recovery-file', f'{self.log_file}.progress']
+    process = subprocess.Popen([self.irace_bin_path] + args,
+      stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd="irace_output")
     decoder = IraceDecoder()
     while True:
       try:
@@ -101,7 +97,13 @@ class IraceCaller:
         break
     output_f.close()
     os.rename(f"irace_output/{self.output_file}.progress", f"irace_output/{self.output_file}")
-    self.best_config = decoder.end()
+    try:
+      self.best_config = decoder.end()
+    except:
+      self.call_and_record(read_recovery=False)
+    finally:
+      if os.path.isfile(f'irace_output/{self.log_file}.progress'):
+        os.remove(f'irace_output/{self.log_file}.progress')
 
   def read_from_output(self):
     decoder = IraceDecoder()
@@ -115,8 +117,8 @@ class IraceCaller:
 
 
 class IraceCallerDynamic(IraceCaller):
-  def __init__(self, size, experiment_multiple, seed):
-      super().__init__(size, experiment_multiple, seed, "dynamic")
+  def __init__(self, size, experiment_multiple, seed, type_name="dynamic"):
+      super().__init__(size, experiment_multiple, seed, type_name)
   
   def write_parameters(self):
     with open(self.parameters_file, "w") as f:
@@ -184,6 +186,19 @@ class IraceCallerBinningComparison(IraceCaller):
     for i in range(self.size):
       self.best_config[i] = lbd_bins[self.bin_lookup[i]]
 
+def write_default_parameters(self, length):
+  with open(f"irace_output/{self.configurations_file}", 'w') as f:
+    row_lengths = []
+    for i in range(length):
+      row_length = max(len(f"{self.default_value:.3f}"), len(f"lbd{i}"))
+      row_lengths.append(row_length)
+      f.write(f"lbd{i}")
+      f.write(' ' * (row_length - len(f"lbd{i}") + 1))
+    f.write('\n')
+    for i in range(length):
+      f.write(f"{self.default_value:.3f}")
+      f.write(' ' * (row_lengths[i] - len(f"{self.default_value:.3f}") + 1))
+
 class IraceCallerBinningComparisonWithStatic(IraceCallerBinningComparison):
   def __init__(self, size, experiment_multiple, descent_rate_j, seed, type_name="binning_comparison_with_static"):
     descent_rate = descent_rates[descent_rate_j]
@@ -193,17 +208,18 @@ class IraceCallerBinningComparisonWithStatic(IraceCallerBinningComparison):
     self.configurations_file = f"configurations_{type_name}_{size}_{experiment_multiple}_{descent_rate}_{default_value}_{seed}.txt"
 
   def write_parameters(self):
-    with open(f"irace_output/{self.configurations_file}", 'w') as f:
-      row_lengths = []
-      for i in range(len(self.bins)):
-        row_length = max(len(f"{self.default_value:.3f}"), len(f"lbd{i}"))
-        row_lengths.append(row_length)
-        f.write(f"lbd{i}")
-        f.write(' ' * (row_length - len(f"lbd{i}") + 1))
-      f.write('\n')
-      for i in range(len(self.bins)):
-        f.write(f"{self.default_value:.3f}")
-        f.write(' ' * (row_lengths[i] - len(f"{self.default_value:.3f}") + 1))
+    write_default_parameters(self, len(self.bins))
+    return super().write_parameters()
+
+class IraceCallerDynamicWithStatic(IraceCallerDynamic):
+  def __init__(self, size, experiment_multiple, seed, type_name="dynamic_with_static"):
+    default_value = default_lbds[sizes_reverse[size]]
+    self.default_value = default_value
+    super().__init__(size, experiment_multiple, seed, type_name)
+    self.configurations_file = f"configurations_{type_name}_{size}_{experiment_multiple}_{default_value}_{seed}.txt"
+
+  def write_parameters(self):
+    write_default_parameters(self, self.size)
     return super().write_parameters()
 
 def onell_eval(f, n, lbds, seed):

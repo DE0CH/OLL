@@ -64,6 +64,7 @@ class IraceCaller:
         self.write_parameters()
         self.call_and_record()
         self.translate()
+
   
   def write_parameters(self):
     with open(f"irace_output/{self.instance_dir}/1.txt", "w") as f:
@@ -208,7 +209,7 @@ class IraceCallerBinningComparisonWithStatic(IraceCallerBinningComparison):
     self.configurations_file = f"configurations_{type_name}_{size}_{experiment_multiple}_{descent_rate}_{default_value}_{seed}.txt"
 
   def write_parameters(self):
-    write_default_parameters(self, len(self.bin))
+    write_default_parameters(self, len(self.bins))
     return super().write_parameters()
 
 class IraceCallerDynamicWithStatic(IraceCallerDynamic):

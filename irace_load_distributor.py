@@ -99,8 +99,8 @@ def run_dynamic_with_static_full(i, tuner_seed, grapher_seed):
   cv.wait()
 
 def main(job_type: JobType):
-  Thread(target=worker, args=(f"mock-pc", ), daemon=True).start()
-  Thread(target=worker, args=(f"mock-pc2", ), daemon=True).start()
+  for i in range(10):
+    Thread(target=worker, args=(f"mock-pc{i}", ), daemon=True).start()
   runs = []
   if job_type == JobType.baseline or job_type == JobType.full:
     runs += [Thread(target=run_baseline_full, args=(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1))) for i in range(N)]

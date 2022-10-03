@@ -44,6 +44,10 @@ for i in range(N):
                 decoder.note_line(line)
             try:
               lbd = decoder.end()
+              if invalid_data:
+                print("recovered from invalid data for" + path)
+                invalid_data = False
+              break
             except:
               print("unable to parse data for " + path)
               invalid_data = True
@@ -64,7 +68,7 @@ for i in range(N):
                 'n': n,
                 'experiment': experiment,
                 'max_evals': max_evals,
-                'tuning_budge': tunning_budget,
+                'tuning_budget': tunning_budget,
                 'tuning_time': 0,
                 'evaluation_results': evaluation_result,
                 'best_configuration': {'fx': fx, 'lbd': lbd}
@@ -83,6 +87,9 @@ for i in range(N):
       elif experiment_type == 'dynamic_theory':
         experiment_multiple = 0
         fx = [i for i in range(n)]
+      elif experiment_type == 'dynamic_with_static':
+        experiment_multiple = experiment_multiples_dynamic[i] 
+        fx = list(range(n))
       else:
         raise NotImplementedError()
       tunning_budget = sizes[i] * experiment_multiple
@@ -92,7 +99,7 @@ for i in range(N):
       if experiment_type == 'dynamic_theory':
         max_evals = 0
       invalid_data = False
-      if experiment_type == 'dynamic' or experiment_type == 'static':
+      if experiment_type == 'dynamic' or experiment_type == 'static' or experiment_type == 'dynamic_with_static':
         file_name_match = f'irace_output_{experiment_type}_{n}_{experiment_multiple}_.*\\.txt'
         file_not_found = True
         for path in os.listdir('irace_output'):
@@ -104,6 +111,10 @@ for i in range(N):
                 decoder.note_line(line)
             try:
               lbd = decoder.end()
+              if invalid_data:
+                print("recovered from invalid data for" + path)
+                invalid_data = False
+              break
             except:
               print("unable to parse data for " + path)
               invalid_data = True
@@ -115,21 +126,30 @@ for i in range(N):
           invalid_data = True
       elif experiment_type == 'dynamic_theory':
         lbd = [(n / (n-f_x))**(1/2) for f_x in range(n)]
-            
-      try: 
-        with open(os.path.join('irace_output', f'performance_{n}_{experiment_multiples_dynamic[i]}_{experiment_multiples_static[i]}.json')) as f:
-          r = json.load(f)
-          if experiment_type == 'dynamic':
-            evaluation_result = r[0] 
-          elif experiment_type == 'static':
-            evaluation_result = r[2] 
-          elif experiment_type == 'dynamic_theory': 
-            evaluation_result = r[4]
-          else:
-            raise NotImplementedError()
-      except FileNotFoundError:
-        print(f"file not found for {experiment_type} {n} {experiment_multiple}, skipping")
-        invalid_data = True
+      else:
+        raise NotImplementedError()
+      if experiment_type == 'dynamic' or experiment_type == 'static' or experiment_type == 'dynamic_theory':
+        try: 
+          with open(os.path.join('irace_output', f'performance_{n}_{experiment_multiples_dynamic[i]}_{experiment_multiples_static[i]}.json')) as f:
+            r = json.load(f)
+            if experiment_type == 'dynamic':
+              evaluation_result = r[0] 
+            elif experiment_type == 'static':
+              evaluation_result = r[2] 
+            elif experiment_type == 'dynamic_theory': 
+              evaluation_result = r[4]
+            else:
+              raise NotImplementedError()
+        except FileNotFoundError:
+          print(f"file not found for {experiment_type} {n} {experiment_multiple}, skipping")
+          invalid_data = True
+      elif experiment_type == 'dynamic_with_static':
+        for path in os.listdir('irace_output'):
+          if re.match(f'performance_{experiment_type}_{n}_{experiment_multiples_dynamic[i]}_.*\\.json', path):
+            with open(os.path.join('irace_output', path)) as f:
+              evaluation_result = json.load(f)      
+      else:
+        raise NotImplementedError()
       if not invalid_data:
         try:
           if len(fx) != len(lbd):
@@ -139,7 +159,7 @@ for i in range(N):
               'n': n,
               'experiment': experiment,
               'max_evals': max_evals,
-              'tuning_budge': tunning_budget,
+              'tuning_budget': tunning_budget,
               'tuning_time': 0,
               'evaluation_results': evaluation_result,
               'best_configuration': {'fx': fx, 'lbd': lbd}

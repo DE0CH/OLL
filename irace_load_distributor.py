@@ -112,7 +112,7 @@ def worker_adjustment():
   while True:
     time.sleep(20)
     cpu_usage = psutil.cpu_percent() / 100
-    if cpu_usage < min_cpu_usage:
+    if cpu_usage < min_cpu_usage and job_queue.qsize() != 0:
       with worker_count_lock:
         target_worker_count = current_worker_count + 1
         logging.info(f"increase worker count to {current_worker_count + 1}")

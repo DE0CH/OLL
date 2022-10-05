@@ -50,7 +50,8 @@ def worker(name):
     global current_worker_count, target_worker_count, worker_count_lock
     with worker_count_lock:
       if target_worker_count < current_worker_count:
-        logging.info(f"dropping woker {s} because target worker needs to be reduced.")
+        logging.info(f"dropping worker {name} because target worker needs to be reduced. After the move, we have {current_worker_count - 1} workers")
+        current_worker_count -= 1
 
 def run_binning_comparison_single(i, j, tuner_seed, grapher_seed):
   s = f'python3 irace_binning_comparison.py {i} {j} {tuner_seed} {grapher_seed}'

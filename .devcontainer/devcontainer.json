@@ -26,6 +26,6 @@
 			]
 		}
 	},
-	"postCreateCommand": "pip3 install -r requirements.txt && cd onell_algs_rs && cargo build && maturin build --release && pip3 install target/wheels/onell_algs_rs-*.whl"
+	"postCreateCommand": "pip3 install -r requirements.txt && cd onell_algs_rs && rm -rf target/wheels && cargo build && maturin build --release && pip3 install target/wheels/onell_algs_rs-*.whl"
 
 }

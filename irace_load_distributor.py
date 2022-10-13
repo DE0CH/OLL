@@ -117,11 +117,9 @@ def worker_adjustment():
       with worker_count_lock:
         target_worker_count = current_worker_count + 1
         logging.info(f"increase worker count to {current_worker_count + 1}")
-        if target_worker_count > current_worker_count:
-          for i in range(target_worker_count > current_worker_count):
-            Thread(target=worker, args=(f"mock-pc{woker_serial}", ), daemon=True).start()
-            current_worker_count += 1
-            woker_serial += 1
+        Thread(target=worker, args=(f"mock-pc{woker_serial}", ), daemon=True).start()
+        current_worker_count += 1
+        woker_serial += 1
     elif cpu_usage > max_cpu_usage:
       with worker_count_lock:
         if target_worker_count != current_worker_count - 1:

@@ -1,6 +1,5 @@
 #! /usr/bin/env python3
 
-from genericpath import isfile
 import subprocess
 from config import N, sizes, experiment_multiples_dynamic, experiment_multiples_static, seed, threads, trials, descent_rates, get_bins, get_cutoff, default_lbds, sizes_reverse
 import numpy

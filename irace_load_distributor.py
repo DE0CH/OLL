@@ -43,7 +43,7 @@ def worker(name):
     logging.info(f"{name}: got job: {s}")
     logging.info(f"{name}: running {s}")
     if not no_op:
-      p = subprocess.run(s, shell=True, capture_output=True)
+      p = subprocess.run(s, capture_output=True)
       if p.returncode != 0:
         global has_failed
         logging.error(f"{s} had non zero return code")
@@ -58,58 +58,76 @@ def worker(name):
         current_worker_count -= 1
 
 def run_binning_comparison_single(i, j, tuner_seed, grapher_seed):
-  s = f'python3 irace_binning_comparison.py {i} {j} {tuner_seed} {grapher_seed}'
+  i = str(i)
+  j = str(j)
+  tuner_seed = str(tuner_seed)
+  grapher_seed = str(grapher_seed)
+  s = [sys.executable, 'irace_binning_comparison.py', i, j, tuner_seed, grapher_seed]
   cv = Event()
   job_queue.put((s, cv))
   cv.wait()
 
 def run_binning_comparison_full(i, tuner_seeds, grapher_seeds):
+  i = str(i)
   tuning_runs = [Thread(target=run_binning_comparison_single, args=(i, j, tuner_seeds[j], grapher_seeds[j])) for j in range(M)]
   for run in tuning_runs:
     run.start()
   for run in tuning_runs:
     run.join()
-  s = f'python3 irace_grapher_binning_comparison.py {i} {" ".join(map(str, tuner_seeds))} {" ".join(map(str, grapher_seeds))}'
+  s = [sys.executable, 'irace_grapher_binning_comparison.py', i] + list(map(str, tuner_seeds)) + list(map(str, grapher_seeds))
   cv = Event()
   job_queue.put((s, cv))
   cv.wait()
 
 
 def run_binning_comparison_with_static_single(i, j, tuner_seed, grapher_seed):
-  s = f'python3 irace_binning_comparison_with_static.py {i} {j} {tuner_seed} {grapher_seed}'
+  i = str(i)
+  j = str(j)
+  tuner_seed = str(tuner_seed)
+  grapher_seed = str(grapher_seed)
+  s = [sys.executable, 'irace_binning_comparison_with_static.py', i, j, tuner_seed, grapher_seed]
   cv = Event()
   job_queue.put((s, cv))
   cv.wait()
-  
+
 def run_binning_comparison_with_static_full(i, tuner_seeds, grapher_seeds):
+  i = str(i)
   tuning_runs = [Thread(target=run_binning_comparison_with_static_single, args=(i, j, tuner_seeds[j], grapher_seeds[j])) for j in range(M)]
   for run in tuning_runs:
     run.start()
   for run in tuning_runs:
     run.join()
-  s = f'python3 irace_grapher_binning_comparison_with_static.py {i} {" ".join(map(str, tuner_seeds))} {" ".join(map(str, grapher_seeds))}'
+  s = [sys.executable, 'irace_grapher_binning_comparison_with_static.py', i] + list(map(str, tuner_seeds)) + list(map(str, grapher_seeds))
   cv = Event()
   job_queue.put((s, cv))
   cv.wait()
 
 def run_baseline_full(i, dynamic_seed, dynamic_bin_seed, static_seed, grapher_seed):
+  i = str(i)
+  dynamic_seed = str(dynamic_bin_seed)
+  dynamic_bin_seed = str(dynamic_bin_seed)
+  static_seed = str(static_seed)
+  grapher_seed = str(grapher_seed)
   dynamic_cv = Event()
-  job_queue.put((f'python3 irace_dynamic.py {i} {dynamic_seed}', dynamic_cv))
+  job_queue.put(([sys.executable, 'irace_dynamic.py', i, dynamic_seed], dynamic_cv))
   dynamic_bin_cv = Event()
-  job_queue.put((f"python3 irace_dynamic_bin.py {i} {dynamic_bin_seed}", dynamic_bin_cv))
+  job_queue.put(([sys.executable, 'irace_dynamic_bin.py', i, dynamic_bin_seed], dynamic_bin_cv))
   static_cv = Event()
-  job_queue.put((f"python3 irace_static.py {i} {static_seed}", static_cv))
+  job_queue.put(([sys.executable, 'irace_static.py', i, static_seed], static_cv))
   dynamic_cv.wait()
   dynamic_bin_cv.wait()
   static_cv.wait()
 
   grapher_cv = Event()
-  job_queue.put((f"python3 irace_grapher.py {i} {dynamic_seed} {dynamic_bin_seed} {static_seed} {grapher_seed}", grapher_cv))
+  job_queue.put(([sys.executable, 'irace_grapher.py', i, dynamic_seed, dynamic_bin_seed, static_seed, grapher_seed], grapher_cv))
   grapher_cv.wait()
   
 def run_dynamic_with_static_full(i, tuner_seed, grapher_seed):
+  i = str(i)
+  tuner_seed = str(tuner_seed)
+  grapher_seed = str(grapher_seed)
   cv = Event()
-  job_queue.put((f'python3 irace_dynamic_with_static.py {i} {tuner_seed} {grapher_seed}', cv))
+  job_queue.put(([sys.executable, 'irace_dynamic_with_static.py', i, tuner_seed, grapher_seed], cv))
   cv.wait()
 
 def worker_adjustment():

@@ -3,7 +3,7 @@ import subprocess
 import threading
 from threading import Thread
 import pathlib
-from config import graph, seed, N, M, min_cpu_usage, max_cpu_usage
+from config import graph, seed, N, M, min_cpu_usage, max_cpu_usage, iterative_seeding_seeds, N2
 import numpy
 import argparse
 import os
@@ -16,6 +16,7 @@ import logging
 import time
 import sys
 import psutil
+import shlex
 
 rng = numpy.random.default_rng(seed)
 job_queue = Queue()
@@ -32,6 +33,7 @@ class JobType(Enum):
   binning = 'binning'
   binning_with_static = 'binning_with_static'
   dynamic_with_static = 'dynamic_with_static'
+  binning_with_defaults = 'binning_with_defaults'
   full = 'full'
   def __str__(self):
     return self.value
@@ -47,6 +49,7 @@ def worker(name):
       if p.returncode != 0:
         global has_failed
         logging.error(f"{s} had non zero return code")
+        logging.info(f"try {shlex.join(s)}")
         has_failed = True
     logging.info(f"{name}: finished running {s}")
     cv.set()
@@ -130,6 +133,12 @@ def run_dynamic_with_static_full(i, tuner_seed, grapher_seed):
   job_queue.put(([sys.executable, 'irace_dynamic_with_static.py', i, tuner_seed, grapher_seed], cv))
   cv.wait()
 
+def run_binning_with_defaults(i, tuner_seeds, grapher_seeds):
+  i = str(i)
+  cv = Event()
+  job_queue.put(([sys.executable, 'irace_binning_with_defaults.py', i] + list(map(str, tuner_seeds)) + list(map(str, grapher_seeds)), cv))
+  cv.wait()
+
 def worker_adjustment():
   global target_worker_count, current_worker_count, worker_serial, worker_count_lock
   while True:
@@ -188,6 +197,8 @@ def main(job_type: JobType):
     runs += [Thread(target=run_dynamic_with_static_full, args=(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1))) for i in range(N)]
   else:
     [(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1)) for i in range(N)]
+  if job_type == JobType.binning_with_defaults or job_type == JobType.full:
+    runs += [Thread(target=run_binning_with_defaults, args=(i, iterative_seeding_seeds[0], iterative_seeding_seeds[1])) for i in range(N2)]
   for thread in runs:
     thread.start()
   for thread in runs:

@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 import subprocess
-from config import N, sizes, experiment_multiples_dynamic, experiment_multiples_static, seed, threads, trials, descent_rates, get_bins, get_cutoff, default_lbds, sizes_reverse
+from config import N, flatten_lbds, sizes, experiment_multiples_dynamic, experiment_multiples_static, seed, threads, trials, descent_rates, get_bins, get_cutoff, default_lbds, sizes_reverse
 import numpy
 from multiprocessing import Pool
 from onell_algs import onell_lambda, onell_dynamic_theory, onell_dynamic_5params
@@ -20,21 +20,22 @@ best_static_config = [None] * N
 
 
 class IraceCaller:
-  def __init__(self, size, experiment_multiple, seed, type_name):
+  def __init__(self, size, experiment_multiple, seed, type_name, configuration_file=None, extra_names=''):
     Path("irace_output").mkdir(parents=True, exist_ok=True)
-    Path(f"irace_output/Instances_{size}").mkdir(parents=True, exist_ok=True)
+    Path(f"irace_output/Instances_{size}{extra_names}").mkdir(parents=True, exist_ok=True)
     self.size = size
     self.experiment_multiple = experiment_multiple
     self.seed = seed
     self.target_runner = f"target_runner_{type_name}.py"
-    self.output_file = f"irace_output_{type_name}_{size}_{experiment_multiple}_{seed}.txt"
+    self.output_file = f"irace_output_{type_name}_{size}_{experiment_multiple}{extra_names}_{seed}.txt"
     self.read_output = os.path.isfile(f"irace_output/{self.output_file}")
-    self.log_file = f"irace_{type_name}_{size}_{experiment_multiple}_{seed}.Rdata"
-    self.parameters_file = f"irace_output/parameters_{type_name}_{size}.txt"
+    self.log_file = f"irace_{type_name}_{size}_{experiment_multiple}{extra_names}_{seed}.Rdata"
+    self.parameters_file = f"irace_output/parameters_{type_name}{extra_names}_{size}.txt"
     self.type_name = type_name
     self.irace_bin_path = os.path.join(subprocess.check_output(['Rscript', '-e', "cat(system.file(package=\'irace\', \'bin\', mustWork=TRUE))"]).decode('utf-8'), 'irace')
-    self.instance_dir = f"Instances_{self.size}"
-    self.configurations_file = None
+    self.instance_dir = f"Instances_{self.size}{extra_names}"
+    self.configurations_file = configuration_file
+    self.extra_names = extra_names
   
   def run(self):
     if not self.read_output:
@@ -56,8 +57,10 @@ class IraceCaller:
   def write_parameters(self):
     with open(f"irace_output/{self.instance_dir}/1.txt", "w") as f:
       f.write(f"{self.size}\n")
+      if self.extra_names:
+        f.write(f'{self.extra_names}\n')
 
-    with open(f"irace_output/scenario_{self.type_name}_{self.size}_{self.experiment_multiple}_{self.seed}.txt", "w") as f:
+    with open(f"irace_output/scenario_{self.type_name}_{self.size}_{self.experiment_multiple}{self.extra_names}_{self.seed}.txt", "w") as f:
       f.write(f"maxExperiments = {self.size * self.experiment_multiple}\n")
       f.write(f"targetRunner = \"{os.path.join('..', self.target_runner)}\"\n")
       f.write(f"boundMax = 99999999\n")
@@ -75,7 +78,7 @@ class IraceCaller:
       "--capping", "1",
       "--bound-max", str(get_cutoff(self.size)),
       "--log-file", f"{self.log_file}", 
-      "--scenario", f"scenario_{self.type_name}_{self.size}_{self.experiment_multiple}_{self.seed}.txt", 
+      "--scenario", f"scenario_{self.type_name}_{self.size}_{self.experiment_multiple}{self.extra_names}_{self.seed}.txt", 
       "--train-instances-dir", self.instance_dir,
       "--parameter-file", os.path.basename(self.parameters_file)
     ]
@@ -201,6 +204,21 @@ def write_default_parameters(self, length):
       f.write(f"{self.default_value:.3f}")
       f.write(' ' * (row_lengths[i] - len(f"{self.default_value:.3f}") + 1))
 
+def write_default_parameters_for_lbds(configurations_file, lbds):
+  length = len(lbds)
+  with open(f"irace_output/{configurations_file}", "w") as f:
+    row_lengths = []
+    for i in range(length):
+      row_length = max(len(f"{lbds[i]}"), len(f"lbd{i}"))
+      row_lengths.append(row_length)
+      f.write(f"lbd{i}")
+      f.write(' ' * (row_length - len(f"lbd{i}") + 1))
+    f.write('\n')
+    for i in range(length):
+      f.write(f"{lbds[i]}")
+      f.write(' ' * (row_lengths[i] - len(f"{lbds[i]}") + 1))
+    f.write('\n')
+
 class IraceCallerBinningComparisonWithStatic(IraceCallerBinningComparison):
   def __init__(self, size, experiment_multiple, descent_rate_j, seed, type_name="binning_comparison_with_static"):
     descent_rate = descent_rates[descent_rate_j]
@@ -224,6 +242,35 @@ class IraceCallerDynamicWithStatic(IraceCallerDynamic):
     write_default_parameters(self, self.size)
     return super().write_parameters()
 
+class IraceCallerBinningWithDefaults(IraceCaller):
+  def __init__(self, size, i, experiment_multiple, default_lbds, bins, seed, type_name="binning_with_defaults"):
+    # default lbds is the flattened value, it will convert to the binned ones before passing to irace
+    type_name = type_name
+    self.type_name = type_name
+    self.default_lbds = default_lbds
+    self.bins = bins
+    self.target_runner = f"irace_out/target_runner_{type_name}.py"
+    if default_lbds is not None:
+      super().__init__(size, experiment_multiple, seed, type_name, configuration_file=f"configurations_{type_name}_{size}_{experiment_multiple}_{i}_{seed}.txt", extra_names="_" + str(i))
+    else:
+      super().__init__(size, experiment_multiple, seed, type_name, extra_names="_" + str(i))
+
+  def write_parameters(self):  
+    with open(self.parameters_file, "w") as f:
+      for i in range(len(self.bins)-1):
+        f.write(f"lbd{i} \"--lbd{i} \" r (1, {self.size}) \n")
+    if self.default_lbds is not None:
+      binned_lbds = []
+      print(self.default_lbds, self.bins)
+      for j in range(len(self.bins)-1):
+        print(self.default_lbds, self.bins)
+        binned_lbds.append(self.default_lbds[self.bins[j]])
+      write_default_parameters_for_lbds(self.configurations_file, binned_lbds)
+    return super().write_parameters()
+  
+  def translate(self):
+    self.best_config = flatten_lbds(self.best_config, self.bins)
+    return super().translate()
 def onell_eval(f, n, lbds, seed):
     if lbds:
         res = f(n, lbds=lbds, seed=seed)

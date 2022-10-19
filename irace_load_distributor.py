@@ -198,7 +198,7 @@ def main(job_type: JobType):
   else:
     [(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1)) for i in range(N)]
   if job_type == JobType.binning_with_defaults or job_type == JobType.full:
-    runs += [Thread(target=run_binning_with_defaults, args=(i, iterative_seeding_seeds[0], iterative_seeding_seeds[1])) for i in range(N2)]
+    runs += [Thread(target=run_binning_with_defaults, args=(i, iterative_seeding_seeds[i][0], iterative_seeding_seeds[i][1])) for i in range(N2)]
   for thread in runs:
     thread.start()
   for thread in runs:

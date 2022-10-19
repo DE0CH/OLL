@@ -261,9 +261,7 @@ class IraceCallerBinningWithDefaults(IraceCaller):
         f.write(f"lbd{i} \"--lbd{i} \" r (1, {self.size}) \n")
     if self.default_lbds is not None:
       binned_lbds = []
-      print(self.default_lbds, self.bins)
       for j in range(len(self.bins)-1):
-        print(self.default_lbds, self.bins)
         binned_lbds.append(self.default_lbds[self.bins[j]])
       write_default_parameters_for_lbds(self.configurations_file, binned_lbds)
     return super().write_parameters()

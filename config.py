@@ -175,7 +175,7 @@ else:
   iterative_seeding_sizes = [2000]
   iterative_seeding_multiples = [[10] * 5]
 iterative_seeding_iterations = [5]
-iterative_seeding_seeds = [[45937, 35062, 62556, 33221, 62291], [41639, 48005, 47960, 44150, 36705]] # tuner_seed, grapher_seed
+iterative_seeding_seeds = [[[45937, 35062, 62556, 33221, 62291], [41639, 48005, 47960, 44150, 36705]]] # tuner_seed, grapher_seed
 
 def get_iter_bins(size, bin_count):
   res = [0]

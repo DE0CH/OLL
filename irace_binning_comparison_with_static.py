@@ -1,6 +1,6 @@
 from irace_launcher import IraceCallerBinningComparisonWithStatic
 import argparse
-from config import sizes, experiment_multiples_dynamic_bin, descent_rates, threads, trials, onell_lambda_positional, default_lbds, load_or_run_binning_comaparison_validation
+from config import sizes, experiment_multiples_dynamic_bin, descent_rates, threads, trials, onell_lambda_positional, default_lbds, load_or_run_binning_comparison_validation
 from irace_grapher import next_randoms
 import json
 from multiprocessing import Pool
@@ -13,7 +13,7 @@ def main(i, j, tuner_seed, grapher_seed):
     json.dump(caller.best_config, f)
   pool = Pool(threads)
   rng = numpy.random.default_rng(tuner_seed)
-  load_or_run_binning_comaparison_validation(sizes[i], f"irace_output/performance_binning_comparison_with_static_{sizes[i]}_{experiment_multiples_dynamic_bin[i]}_{descent_rates[j]}_{tuner_seed}_{default_lbds[i]}_{grapher_seed}.json", caller.best_config, next_randoms(rng, trials), pool)
+  load_or_run_binning_comparison_validation(sizes[i], f"irace_output/performance_binning_comparison_with_static_{sizes[i]}_{experiment_multiples_dynamic_bin[i]}_{descent_rates[j]}_{tuner_seed}_{default_lbds[i]}_{grapher_seed}.json", caller.best_config, next_randoms(rng, trials), pool)
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()

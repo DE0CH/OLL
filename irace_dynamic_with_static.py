@@ -1,6 +1,6 @@
 from irace_launcher import IraceCallerDynamicWithStatic
 import argparse
-from config import sizes, experiment_multiples_dynamic, load_or_run_binning_comaparison_validation, trials, threads
+from config import sizes, experiment_multiples_dynamic, load_or_run_binning_comparison_validation, trials, threads
 import json
 from irace_grapher import next_randoms
 import numpy
@@ -13,7 +13,7 @@ def main(i, tuner_seed, grapher_seed):
     json.dump(caller.best_config, f)
   pool = Pool(threads)
   rng = numpy.random.default_rng(grapher_seed)
-  load_or_run_binning_comaparison_validation(sizes[i], f'irace_output/performance_dynamic_with_static_{sizes[i]}_{experiment_multiples_dynamic[i]}_{tuner_seed}_{grapher_seed}.json', caller.best_config, next_randoms(rng, trials), pool)
+  load_or_run_binning_comparison_validation(sizes[i], f'irace_output/performance_dynamic_with_static_{sizes[i]}_{experiment_multiples_dynamic[i]}_{tuner_seed}_{grapher_seed}.json', caller.best_config, next_randoms(rng, trials), pool)
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()

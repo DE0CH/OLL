@@ -153,7 +153,7 @@ def suppress_stderr():
 
 experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison', 'binning_comparison_with_static', 'dynamic_with_static']
 
-def load_or_run_binning_comaparison_validation(size, file_name, best_config, seeds, pool):
+def load_or_run_binning_comparison_validation(size, file_name, best_config, seeds, pool):
   try:
     with open(file_name) as f:
       performances = json.load(f)
@@ -164,3 +164,4 @@ def load_or_run_binning_comaparison_validation(size, file_name, best_config, see
 
 min_cpu_usage = 0.75
 max_cpu_usage = 0.95
+

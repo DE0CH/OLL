@@ -24,6 +24,7 @@ current_worker_count = 0
 target_worker_count = 0
 worker_count_lock = threading.Lock()
 worker_serial = 0
+has_failed = False
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(levelname)s: %(message)s',  datefmt="%m/%d/%Y %I:%M:%S %p %Z")
 
 class JobType(Enum):
@@ -37,13 +38,16 @@ class JobType(Enum):
 
 def worker(name):
   while True:
-
     logging.info(f"{name} waiting for job")
     s, cv = job_queue.get()
     logging.info(f"{name}: got job: {s}")
     logging.info(f"{name}: running {s}")
     if not no_op:
-      subprocess.run(s, shell=True, capture_output=True)
+      p = subprocess.run(s, shell=True, capture_output=True)
+      if p.returncode != 0:
+        global has_failed
+        logging.error(f"{s} had non zero return code")
+        has_failed = True
     logging.info(f"{name}: finished running {s}")
     cv.set()
     job_queue.task_done()
@@ -171,6 +175,10 @@ def main(job_type: JobType):
   for thread in runs:
     thread.join()
   job_queue.join()
+  if has_failed:
+    return 1
+  else:
+    return 0
 
 if __name__ == '__main__':
   logging.info(sys.argv)
@@ -179,6 +187,6 @@ if __name__ == '__main__':
   parser.add_argument('--np', default=False, action='store_true')
   args = parser.parse_args()
   no_op = args.np
-  main(args.job_type)
+  exit(main(args.job_type))
 
 

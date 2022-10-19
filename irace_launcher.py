@@ -94,6 +94,9 @@ class IraceCaller:
         output_f.write(line)
       except StopIteration:
         break
+    process.wait()
+    if process.returncode != 0:
+      raise ChildProcessError("irace had non zero return code")
     output_f.close()
     os.rename(f"irace_output/{self.output_file}.progress", f"irace_output/{self.output_file}")
     try:

@@ -23,7 +23,7 @@ no_op = False
 current_worker_count = 0
 target_worker_count = 0
 worker_count_lock = threading.Lock()
-woker_serial = 0
+worker_serial = 0
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(levelname)s: %(message)s',  datefmt="%m/%d/%Y %I:%M:%S %p %Z")
 
 class JobType(Enum):
@@ -109,7 +109,7 @@ def run_dynamic_with_static_full(i, tuner_seed, grapher_seed):
   cv.wait()
 
 def worker_adjustment():
-  global target_worker_count, current_worker_count, woker_serial, worker_count_lock
+  global target_worker_count, current_worker_count, worker_serial, worker_count_lock
   while True:
     time.sleep(20)
     cpu_usage = psutil.cpu_percent() / 100
@@ -117,9 +117,9 @@ def worker_adjustment():
       with worker_count_lock:
         target_worker_count = current_worker_count + 1
         logging.info(f"increase worker count to {current_worker_count + 1}")
-        Thread(target=worker, args=(f"mock-pc{woker_serial}", ), daemon=True).start()
+        Thread(target=worker, args=(f"mock-pc{worker_serial}", ), daemon=True).start()
         current_worker_count += 1
-        woker_serial += 1
+        worker_serial += 1
     elif cpu_usage > max_cpu_usage:
       with worker_count_lock:
         if target_worker_count != current_worker_count - 1:
@@ -129,11 +129,11 @@ def worker_adjustment():
 
 def main(job_type: JobType):
   for i in range(2):
-    global target_worker_count, current_worker_count, woker_serial
+    global target_worker_count, current_worker_count, worker_serial
     Thread(target=worker, args=(f"mock-pc{i}", ), daemon=True).start()
     target_worker_count = 2
     current_worker_count = 2
-    woker_serial = 2
+    worker_serial = 2
   Thread(target=worker_adjustment, args=(), daemon=True).start()
   runs = []
   if job_type == JobType.baseline or job_type == JobType.full:

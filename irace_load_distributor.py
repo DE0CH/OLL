@@ -59,6 +59,7 @@ def worker(name):
       if target_worker_count < current_worker_count:
         logging.info(f"dropping worker {name} because target worker needs to be reduced. After the move, we have {current_worker_count - 1} workers, while aiming for {target_worker_count}")
         current_worker_count -= 1
+        return
 
 def run_binning_comparison_single(i, j, tuner_seed, grapher_seed):
   i = str(i)

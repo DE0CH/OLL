@@ -57,7 +57,7 @@ def worker(name):
     global current_worker_count, target_worker_count, worker_count_lock
     with worker_count_lock:
       if target_worker_count < current_worker_count:
-        logging.info(f"dropping worker {name} because target worker needs to be reduced. After the move, we have {current_worker_count - 1} workers")
+        logging.info(f"dropping worker {name} because target worker needs to be reduced. After the move, we have {current_worker_count - 1} workers, while aiming for {target_worker_count}")
         current_worker_count -= 1
 
 def run_binning_comparison_single(i, j, tuner_seed, grapher_seed):
@@ -153,8 +153,7 @@ def worker_adjustment():
         worker_serial += 1
     elif cpu_usage > max_cpu_usage:
       with worker_count_lock:
-        if target_worker_count != current_worker_count - 1:
-          logging.info(f"down adjusting target workder count {current_worker_count - 1}")
+        logging.info(f"down adjusting target workder count {current_worker_count - 1}")
         target_worker_count = current_worker_count - 1
       
 

@@ -137,7 +137,7 @@ def run_dynamic_with_static_full(i, tuner_seed, grapher_seed):
 def run_binning_with_defaults(i, tuner_seeds, grapher_seeds):
   i = str(i)
   cv = Event()
-  job_queue.put(([sys.executable, 'irace_binning_with_defaults.py', i] + list(map(str, tuner_seeds)) + list(map(str, grapher_seeds)), cv))
+  job_queue.put(([sys.executable, 'irace_binning_with_defaults.py', i], cv))
   cv.wait()
 
 def worker_adjustment():

@@ -169,13 +169,14 @@ N2 = 1
 if SMALL == 'small':
   iterative_seeding_sizes = [20]
   iterative_seeding_multiples = [[50] * 5]
+  iterative_seeding_iterations = [5]
 elif SMALL == 'xsmall':
   raise NotImplementedError('xsmall is no longer supported')
 else:
   iterative_seeding_sizes = [2000]
-  iterative_seeding_multiples = [[10] * 5]
-iterative_seeding_iterations = [5]
-iterative_seeding_seeds = [[[45937, 35062, 62556, 33221, 62291], [41639, 48005, 47960, 44150, 36705]]] # tuner_seed, grapher_seed
+  iterative_seeding_multiples = [[10] * 11]
+  iterative_seeding_iterations = [11]
+iterative_seeding_seeds = [[[45937, 35062, 62556, 33221, 62291, 56368, 64176, 53501, 38816, 48628, 56170], [41639, 48005, 47960, 44150, 36705, 55294, 63274, 64432, 35089, 41214, 34467]]] # tuner_seed, grapher_seed
 
 def get_iter_bins(size, bin_count):
   res = [0]

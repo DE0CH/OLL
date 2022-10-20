@@ -1,6 +1,6 @@
 from irace_launcher import IraceCallerBinningWithDefaults
 import argparse
-from config import load_or_run_binning_comparison_validation, trials, threads, iterative_seeding_iterations, iterative_seeding_sizes, iterative_seeding_multiples, get_iter_bins
+from config import load_or_run_binning_comparison_validation, trials, threads, iterative_seeding_iterations, iterative_seeding_sizes, iterative_seeding_multiples, get_iter_bins, iterative_seeding_seeds
 import json
 from irace_grapher import next_randoms
 import numpy
@@ -28,11 +28,7 @@ def main(i, tuner_seeds, grapher_seeds):
 if __name__ == '__main__':
   io = int(sys.argv[1])
   iteration_count = iterative_seeding_iterations[io]
-  tuner_seeds = []
-  grapher_seeds = []
-  for i in range(iteration_count):
-    tuner_seeds.append(int(sys.argv[2+i]))
-  for i in range(iteration_count):
-    grapher_seeds.append(int(sys.argv[2+iteration_count+i]))
+  tuner_seeds = iterative_seeding_seeds[io][0]
+  grapher_seeds = iterative_seeding_seeds[io][1]
   main(io, tuner_seeds, grapher_seeds)
   

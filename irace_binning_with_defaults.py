@@ -22,7 +22,7 @@ def main(i, tuner_seeds, grapher_seeds):
     rng = numpy.random.default_rng(grapher_seed)
     previous_lbds = caller.best_config
     print(previous_lbds)
-    load_or_run_binning_comparison_validation(size, f'irace_output/performance_binning_with_default_{size}_{experiment_multiples_dynamic[i]}_{j}_{tuner_seed}_{grapher_seed}.json', caller.best_config, next_randoms(rng, trials), pool)
+    load_or_run_binning_comparison_validation(size, f'irace_output/performance_binning_with_defaults_{size}_{experiment_multiples_dynamic[i]}_{j}_{tuner_seed}_{grapher_seed}.json', caller.best_config, next_randoms(rng, trials), pool)
 
 
 if __name__ == '__main__':

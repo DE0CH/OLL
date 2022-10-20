@@ -151,7 +151,7 @@ def suppress_stderr():
             yield (err, )
   
 
-experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison', 'binning_comparison_with_static', 'dynamic_with_static']
+experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison', 'binning_comparison_with_static', 'dynamic_with_static', 'binning_with_defaults']
 
 def load_or_run_binning_comparison_validation(size, file_name, best_config, seeds, pool):
   try:

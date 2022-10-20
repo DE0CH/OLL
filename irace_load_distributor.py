@@ -151,9 +151,10 @@ def worker_adjustment():
         Thread(target=worker, args=(f"mock-pc{worker_serial}", ), daemon=True).start()
         current_worker_count += 1
         worker_serial += 1
-    elif cpu_usage > max_cpu_usage:
+    elif cpu_usage > max_cpu_usage and target_worker_count > 1:
       with worker_count_lock:
-        logging.info(f"down adjusting target workder count {current_worker_count - 1}")
+        if target_worker_count != current_worker_count - 1:
+          logging.info(f"down adjusting target workder count {current_worker_count - 1}")
         target_worker_count = current_worker_count - 1
       
 

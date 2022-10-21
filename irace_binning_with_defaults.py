@@ -21,7 +21,6 @@ def main(i, tuner_seeds, grapher_seeds):
       json.dump(caller.best_config, f)
     rng = numpy.random.default_rng(grapher_seed)
     previous_lbds = caller.best_config
-    print(previous_lbds)
     load_or_run_binning_comparison_validation(size, f'irace_output/performance_binning_with_defaults_{size}_{iterative_seeding_multiples[i][j]}_{j}_{tuner_seed}_{grapher_seed}.json', caller.best_config, next_randoms(rng, trials), pool)
 
 

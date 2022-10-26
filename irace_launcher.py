@@ -98,14 +98,17 @@ class IraceCaller:
       except StopIteration:
         break
     process.wait()
-    if process.returncode != 0:
-      raise ChildProcessError("irace had non zero return code")
     output_f.close()
     os.rename(f"irace_output/{self.output_file}.progress", f"irace_output/{self.output_file}")
     try:
+      if process.returncode != 0 and not read_recovery:
+        raise ChildProcessError("irace had non zero return code")
       self.best_config = decoder.end()
     except:
-      self.call_and_record(read_recovery=False)
+      if read_recovery:
+        self.call_and_record(read_recovery=False)
+      else:
+        raise
     finally:
       if os.path.isfile(f'irace_output/{self.log_file}.progress'):
         os.remove(f'irace_output/{self.log_file}.progress')

@@ -151,7 +151,7 @@ def suppress_stderr():
             yield (err, )
   
 
-experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison', 'binning_comparison_with_static', 'dynamic_with_static']
+experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison', 'binning_comparison_with_static', 'dynamic_with_static', 'binning_with_defaults']
 
 def load_or_run_binning_comparison_validation(size, file_name, best_config, seeds, pool):
   try:
@@ -165,3 +165,33 @@ def load_or_run_binning_comparison_validation(size, file_name, best_config, seed
 min_cpu_usage = 0.75
 max_cpu_usage = 0.95
 
+N2 = 1
+if SMALL == 'small':
+  iterative_seeding_sizes = [20]
+  iterative_seeding_multiples = [[50] * 5]
+  iterative_seeding_iterations = [5]
+elif SMALL == 'xsmall':
+  raise NotImplementedError('xsmall is no longer supported')
+else:
+  iterative_seeding_sizes = [2000]
+  iterative_seeding_multiples = [[10] * 11]
+  iterative_seeding_iterations = [11]
+iterative_seeding_seeds = [[[45937, 35062, 62556, 33221, 62291, 56368, 64176, 53501, 38816, 48628, 56170], [41639, 48005, 47960, 44150, 36705, 55294, 63274, 64432, 35089, 41214, 34467]]] # tuner_seed, grapher_seed
+
+def get_iter_bins(size, bin_count):
+  res = [0]
+  for j in range(bin_count-1):
+    res.append(size - size // 2**(j+1))
+  res.append(size)
+  return res
+
+def flatten_lbds(lbds, bins):
+  res = []
+  i = 0
+  j = 0
+  while j < bins[-1]:
+    res.append(lbds[i])
+    j += 1
+    if j == bins[i+1]:
+      i += 1
+  return res

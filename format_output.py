@@ -197,6 +197,11 @@ for experiment_type in experiment_types:
           print(f"no evalution data for {experiment_type} {n} {j}")
           failed = True
         try:
+          evaluation_logs = read_evaluation_from_json(f"irace_output/performance_{experiment_type}_{n}_{iterative_seeding_multiples[i][j]}_{j}_{iterative_seeding_seeds[i][0][j]}_{iterative_seeding_seeds[i][1][j]}.json.log.json")
+        except:
+          print(f"no log found")
+          failed = True
+        try:
           lbd = read_data_from_irace_output(f"irace_output/irace_output_{experiment_type}_{n}_{iterative_seeding_multiples[i][j]}_{j}_{iterative_seeding_seeds[i][0][j]}.txt")
         except:
           print(f"no irace data for {experiment_type} {n} {j}")
@@ -208,6 +213,7 @@ for experiment_type in experiment_types:
             'max_evals': max_evals,
             'tuning_budget': tunning_budget,
             'evaluation_results': evaluation_result,
+            'evaluation_logs': evaluation_logs,
             'best_configuration': {'fx': fx, 'lbd': lbd}
           })
   elif experiment_type in ['binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle']:

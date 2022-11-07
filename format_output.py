@@ -220,7 +220,7 @@ for experiment_type in experiment_types:
       bin_count = binning_with_dynamic_iterations[i]
       n = binning_with_dynamic_sizes[i]
       experiment = experiment_type
-      fx = get_iter_bins(n, bin_count)
+      fx = get_iter_bins(n, bin_count)[:-1]
       lbd = get_dynamic_theory_lbd(n, bin_count, mm[experiment_type])
       try:
         evaluation_result = read_evaluation_from_json(f'irace_output/performance_{experiment_type}_{i}_{binning_with_dynamic_seeds[i]}.json')
@@ -233,7 +233,7 @@ for experiment_type in experiment_types:
         'tuning_budget': 0,
         'tuning_time':0,
         'evaluation_results': evaluation_result,
-        'best_configuration': {'fx': fx, 'ldb': lbd}
+        'best_configuration': {'fx': fx, 'lbd': lbd}
       })
       
   else: 

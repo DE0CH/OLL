@@ -20,4 +20,5 @@ for i in range(N):
   (i, list(rng.integers(1<<15, (1<<16)-1, M)), list(rng.integers(1<<15, (1<<16)-1, M)))
 [(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1)) for i in range(N)]
 rng.integers(1<<15, (1<<16) - 1, 10)
-print(list(rng.integers(1<<15, (1<<16) - 1, 12)))
+rng.integers(1<<15, (1<<16) - 1, 12)
+print(rng.integers(1<<15, (1<<16) - 1, 1))

@@ -5,7 +5,8 @@ try:
 except:
   pass
 import json
-
+from enum import Enum 
+from math import sqrt
 
 
 SMALL = os.getenv("SMALL", None)
@@ -151,7 +152,7 @@ def suppress_stderr():
             yield (err, )
   
 
-experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison', 'binning_comparison_with_static', 'dynamic_with_static', 'binning_with_defaults']
+experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison', 'binning_comparison_with_static', 'dynamic_with_static', 'binning_with_defaults', 'binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle']
 
 def load_or_run_binning_comparison_validation(size, file_name, best_config, seeds, pool):
   try:
@@ -178,6 +179,15 @@ else:
   iterative_seeding_iterations = [11]
 iterative_seeding_seeds = [[[45937, 35062, 62556, 33221, 62291, 56368, 64176, 53501, 38816, 48628, 56170], [41639, 48005, 47960, 44150, 36705, 55294, 63274, 64432, 35089, 41214, 34467]]] # tuner_seed, grapher_seed
 
+if SMALL == 'small':
+  binning_with_dynamic_sizes = [20]
+  binning_with_dynamic_iterations = [5]
+else:
+  binning_with_dynamic_sizes = [2000]
+  binning_with_dynamic_iterations = [11]
+
+binning_with_dynamic_seeds = [50043]
+
 def get_iter_bins(size, bin_count):
   res = [0]
   for j in range(bin_count-1):
@@ -186,6 +196,7 @@ def get_iter_bins(size, bin_count):
   return res
 
 def flatten_lbds(lbds, bins):
+  # bin is cumulative
   res = []
   i = 0
   j = 0
@@ -195,3 +206,24 @@ def flatten_lbds(lbds, bins):
     if j == bins[i+1]:
       i += 1
   return res
+
+class BinningWithDynamicStrategy(Enum):
+  start = 'start'
+  end = 'end'
+  middle = 'middle'
+
+def get_dynamic_theory_lbd(size, bin_count, strategy: BinningWithDynamicStrategy):
+  bins = get_iter_bins(size, bin_count)
+  lbds = []
+  if strategy == BinningWithDynamicStrategy.start:
+    for i in range(bin_count):
+      lbds.append(sqrt(size / (size - bins[i])))
+  elif strategy == BinningWithDynamicStrategy.end:
+    for i in range(bin_count):
+      lbds.append(sqrt(size / (size - bins[i+1] + 1)))
+  elif strategy == BinningWithDynamicStrategy.middle:
+    for i in range(bin_count):
+      lbds.append(sqrt(size / (size - (bins[i] + bins[i+1]) // 2)))
+  else:
+    raise NotImplementedError("The current BinningWithDynamicStrategy is not implemented")
+  return lbds

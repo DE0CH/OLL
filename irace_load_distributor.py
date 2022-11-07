@@ -34,6 +34,7 @@ class JobType(Enum):
   binning_with_static = 'binning_with_static'
   dynamic_with_static = 'dynamic_with_static'
   binning_with_defaults = 'binning_with_defaults'
+  binning_with_dynamic = 'binning_with_dynamic'
   full = 'full'
   def __str__(self):
     return self.value
@@ -140,6 +141,12 @@ def run_binning_with_defaults(i, tuner_seeds, grapher_seeds):
   job_queue.put(([sys.executable, 'irace_binning_with_defaults.py', i], cv))
   cv.wait()
 
+def run_binning_with_dynamic(i):
+  i = str(i)
+  cv = Event()
+  job_queue.put(([sys.executable, 'eval_binning_with_dynamic.py', i], cv))
+  cv.wait()
+
 def worker_adjustment():
   global target_worker_count, current_worker_count, worker_serial, worker_count_lock
   while True:
@@ -200,6 +207,8 @@ def main(job_type: JobType):
     [(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1)) for i in range(N)]
   if job_type == JobType.binning_with_defaults or job_type == JobType.full:
     runs += [Thread(target=run_binning_with_defaults, args=(i, iterative_seeding_seeds[i][0], iterative_seeding_seeds[i][1])) for i in range(N2)]
+  if job_type == JobType.binning_with_dynamic or job_type == JobType.full:
+    runs += [Thread(target=run_binning_with_dynamic, args=(i,)) for i in range(N2)]
   for thread in runs:
     thread.start()
   for thread in runs:

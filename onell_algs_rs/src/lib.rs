@@ -12,17 +12,50 @@ use rand::SeedableRng;
 use rand_mt::Mt64;
 use statrs::distribution::{Binomial, Discrete};
 
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
+struct FxLog {
+    fxs: Vec<u64>,
+    n_evalss: Vec<NEvals>,
+}
 
+impl FxLog {
+    fn new() -> Self {
+        Self {
+            fxs: Vec::new(),
+            n_evalss: Vec::new()
+        }
+    }
+    fn record(&mut self, fx: u64, n_evals: &NEvals) {
+        match self.fxs.last() {
+            Some(p) => {
+                if *p != fx {
+                    self.fxs.push(fx);
+                    self.n_evalss.push(n_evals.clone());
+                }
+            },
+            None => {
+                self.fxs.push(fx);
+                self.n_evalss.push(n_evals.clone());
+            }
+        }
+    }
+    fn export(self) -> (Vec<u64>, Vec<u64>) {
+        let n_evalss = self.n_evalss.into_iter().map(|x| x.export()).collect();
+        (self.fxs, n_evalss)
+    }
+}
 
+#[derive(Clone)]
 enum NEvals {
     Inf,
-    N(usize),
+    N(u64),
 }
 
 impl NEvals {
     fn new() -> NEvals {
         NEvals::N(0)
+    }
+    fn new_with_value(n: u64) -> NEvals {
+        NEvals::N(n)
     }
     fn increament(&mut self) {
         *self = match self {
@@ -68,6 +101,37 @@ impl AddAssign for NEvals {
                     Self::Inf => Self::Inf,
                     Self::N(val2) => Self::N(*val1 + val2)
                 }
+            }
+        }
+    }
+}
+
+impl PartialOrd for NEvals {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        match self {
+            Self::Inf => {
+                match other {
+                    Self::Inf => None,
+                    Self::N(_) => Some(std::cmp::Ordering::Greater)
+                }
+            },
+            Self::N(x) => {
+                match other {
+                    Self::Inf => Some(std::cmp::Ordering::Less),
+                    Self::N(y) => Some(x.cmp(y))
+                }
+            }
+        }
+    }
+}
+
+impl PartialEq for NEvals {
+    fn eq(&self, other: &Self) -> bool {
+        match self {
+            Self::Inf => false,
+            Self::N(x) => match other {
+                Self::Inf => false,
+                Self::N(y) => x == y
             }
         }
     }
@@ -121,7 +185,7 @@ fn mutate<R: rand::Rng>(parent: &BitVec, p: f64, n_child: usize, rng: &mut R) ->
         .max_by(|x, y| x.count_ones().cmp(&y.count_ones()))
         .unwrap();
 
-    (x_prime, NEvals::N(n_child))
+    (x_prime, NEvals::new_with_value(n_child.try_into().unwrap()))
 }
 
 fn crossover<R: rand::Rng>(
@@ -180,28 +244,64 @@ fn generation_with_lambda<R: rand::Rng>(x: BitVec, lbd: f64, rng: &mut R) -> (Bi
     generation_full(x, p, n_child, c, n_child, rng)
 }
 
-#[pyfunction]
-fn onell_lambda(n: usize, lbds: Vec<f64>, seed: u64, max_evals: usize) -> PyResult<u64> {
-    let max_evals = NEvals::N(max_evals);
+fn onell_lambda_rs(n: usize, lbds: Vec<f64>, seed: u64, max_evals: NEvals, record_log: bool) -> (NEvals, Option<FxLog>) {
     let mut rng: Mt64 = SeedableRng::seed_from_u64(seed);
     let mut x = random_bits(&mut rng, n);
     let mut n_evals = NEvals::new();
+    let mut logs;
+    if record_log {
+        logs = Some(FxLog::new());
+    } else {
+        logs = None;
+    }
+    if record_log {
+        let mut logs_i = logs.unwrap();
+        logs_i.record(x.count_ones().try_into().unwrap(), &n_evals);
+        logs = Some(logs_i);
+    }
     while x.count_ones() != n && n_evals < max_evals {
         let lbd = lbds[x.count_ones()];
         let ne;
         (x, ne) = generation_with_lambda(x, lbd, &mut rng);
         n_evals += ne;
+        if record_log {
+            let mut logs_i = logs.unwrap();
+            logs_i.record(x.count_ones().try_into().unwrap(), &n_evals);
+            logs = Some(logs_i)
+        }
     }
 
     if x.count_ones() != n {
-        n_evals.make_big()
+        n_evals.make_big();
+        if record_log {
+            let mut logs_i = logs.unwrap();
+            logs_i.record(x.count_ones().try_into().unwrap(), &n_evals);
+            logs = Some(logs_i)
+        } 
     }
+    if record_log {
+        (n_evals, logs)
+    } else {
+        (n_evals, None)
+    }
+}
+
+#[pyfunction]
+fn onell_lambda(n: usize, lbds: Vec<f64>, seed: u64, max_evals: usize) -> PyResult<u64> {
+    let (n_evals, _) = onell_lambda_rs(n, lbds, seed, NEvals::new_with_value(max_evals.try_into().unwrap()), false);
     Ok(n_evals.export())
 }
 
 #[pyfunction]
+fn onell_lambda_with_log(n: usize, lbds: Vec<f64>, seed: u64, max_evals: usize) -> PyResult<(u64, Vec<u64>, Vec<u64>)> {
+    let (n_evals, logs) = onell_lambda_rs(n, lbds, seed, NEvals::new_with_value(max_evals.try_into().unwrap()), true);
+    let (a, b) = logs.unwrap().export();
+    Ok((n_evals.export(), a, b))
+}
+
+#[pyfunction]
 fn onell_dynamic_theory(n: usize, seed: u64, max_evals: usize) -> PyResult<u64> {
-    let max_evals = NEvals::N(max_evals);
+    let max_evals = NEvals::new_with_value(max_evals.try_into().unwrap());
     let mut rng: Mt64 = SeedableRng::seed_from_u64(seed);
     let mut x = random_bits(&mut rng, n);
     let mut n_evals = NEvals::new();
@@ -220,7 +320,7 @@ fn onell_dynamic_theory(n: usize, seed: u64, max_evals: usize) -> PyResult<u64> 
 
 #[pyfunction]
 fn onell_five_parameters(n: usize, seed: u64, max_evals: usize) -> PyResult<u64> {
-    let max_evals = NEvals::N(max_evals);
+    let max_evals = NEvals::new_with_value(max_evals.try_into().unwrap());
     let mut rng: Mt64 = SeedableRng::seed_from_u64(seed);
     let mut x = random_bits(&mut rng, n);
     let mut n_evals = NEvals::new();
@@ -278,6 +378,7 @@ fn onell_five_parameters(n: usize, seed: u64, max_evals: usize) -> PyResult<u64>
 #[pymodule]
 fn onell_algs_rs(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(onell_lambda, m)?)?;
+    m.add_function(wrap_pyfunction!(onell_lambda_with_log, m)?)?;
     m.add_function(wrap_pyfunction!(onell_dynamic_theory, m)?)?;
     m.add_function(wrap_pyfunction!(onell_five_parameters, m)?)?;
     Ok(())

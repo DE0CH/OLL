@@ -3,7 +3,7 @@
 import sys
 from typing import SupportsRound
 from onell_algs_rs import onell_lambda
-from config import suppress_stderr
+from config import suppress_stderr, c_string, d_string
 
 seed = int(sys.argv[3])
 instance = sys.argv[4]
@@ -19,5 +19,5 @@ for i in range(n):
 
 with suppress_stderr():
   c = onell_lambda(n, lbds, seed, bound)
-print(c)
-print(c)
+print(c_string(c))
+print(d_string(c))

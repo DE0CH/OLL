@@ -227,3 +227,15 @@ def get_dynamic_theory_lbd(size, bin_count, strategy: BinningWithDynamicStrategy
   else:
     raise NotImplementedError("The current BinningWithDynamicStrategy is not implemented")
   return lbds
+
+def c_string(c):
+  if c == 2**64-1:
+    return 'Inf'
+  else:
+    return str(c)
+
+def d_string(c):
+  if c == 2**64-1:
+    return '0'
+  else:
+    return str(c)

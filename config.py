@@ -155,27 +155,31 @@ def suppress_stderr():
 experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison', 'binning_comparison_with_static', 'dynamic_with_static', 'binning_with_defaults', 'binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle']
 
 def load_or_run_binning_comparison_validation(size, file_name, best_config, seeds, pool, logging=False):
-  try:
-    with open(file_name) as f:
-      performances = json.load(f)
-  except:
     if not logging:
-      performances = pool.starmap(onell_lambda_positional, zip([size]*trials, [best_config] * trials, seeds))
-      with open(file_name, "w") as f:
-        json.dump(performances, f)
+      try:
+        with open(file_name) as f:
+          performances = json.load(f)
+      except:
+        performances = pool.starmap(onell_lambda_positional, zip([size]*trials, [best_config] * trials, seeds))
+        with open(file_name, "w") as f:
+          json.dump(performances, f)
     else:
-      results = pool.starmap(onell_lambda_with_log, zip([size]*trials, [best_config] * trials, seeds, [get_cutoff(size)] * trials))
-      performances = []
-      fxss = []
-      n_evalsss = []
-      for a, b, c in results:
-        performances.append(a)
-        fxss.append(b)
-        n_evalsss.append(c)
-      with open(file_name, "w") as f:
-        json.dump(performances, f)
-      with open(f"{file_name}.log.json", "w") as f:
-        json.dump((fxss, n_evalsss), f)
+      try:
+        with open(f"{file_name}.log.json") as f:
+          json.load(f)
+      except:
+        results = pool.starmap(onell_lambda_with_log, zip([size]*trials, [best_config] * trials, seeds, [get_cutoff(size)] * trials))
+        performances = []
+        fxss = []
+        n_evalsss = []
+        for a, b, c in results:
+          performances.append(a)
+          fxss.append(b)
+          n_evalsss.append(c)
+        with open(file_name, "w") as f:
+          json.dump(performances, f)
+        with open(f"{file_name}.log.json", "w") as f:
+          json.dump((fxss, n_evalsss), f)
 
 min_cpu_usage = 0.75
 max_cpu_usage = 0.95

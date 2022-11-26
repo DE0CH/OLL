@@ -13,30 +13,63 @@ use rand_mt::Mt64;
 use statrs::distribution::{Binomial, Discrete};
 
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
-struct NEvals(usize);
+
+
+enum NEvals {
+    Inf,
+    N(usize),
+}
 
 impl NEvals {
     fn new() -> NEvals {
-        NEvals(0)
+        NEvals::N(0)
     }
     fn increament(&mut self) {
-        self.0 += 1;
+        *self = match self {
+            Self::Inf => Self::Inf,
+            Self::N(val) => Self::N(*val + 1),
+        };
     }
     fn make_big(&mut self) {
-        self.0 *= usize::max_value()
+        *self = Self::Inf;
+    }
+    fn export(self) -> u64 {
+        match self {
+            Self::Inf => u64::max_value(),
+            Self::N(val) => match val.try_into() {
+                Ok(val) => val,
+                Err(_) => u64::max_value()
+            }
+        }
     }
 }
 
 impl Add for NEvals {
     type Output = Self;
     fn add(self, other: Self) -> Self {
-        Self(self.0 + other.0)
+        match self {
+            Self::Inf => Self::Inf,
+            Self::N(val1) => {
+                match other {
+                    Self::Inf => Self::Inf,
+                    Self::N(val2) => Self::N(val1 + val2)
+                }
+            }
+        }
     }
 }
 
 impl AddAssign for NEvals {
-    fn add_assign(&mut self, rhs: Self) {
-        self.0 += rhs.0;
+    fn add_assign(&mut self, rhs: Self) {   
+        *self = match self {
+            Self::Inf => Self::Inf,
+            Self::N(val1) => {
+                match rhs {
+                    Self::Inf => Self::Inf,
+                    Self::N(val2) => Self::N(*val1 + val2)
+                }
+            }
+        }
     }
 }
 
@@ -88,7 +121,7 @@ fn mutate<R: rand::Rng>(parent: &BitVec, p: f64, n_child: usize, rng: &mut R) ->
         .max_by(|x, y| x.count_ones().cmp(&y.count_ones()))
         .unwrap();
 
-    (x_prime, NEvals(n_child))
+    (x_prime, NEvals::N(n_child))
 }
 
 fn crossover<R: rand::Rng>(
@@ -148,8 +181,8 @@ fn generation_with_lambda<R: rand::Rng>(x: BitVec, lbd: f64, rng: &mut R) -> (Bi
 }
 
 #[pyfunction]
-fn onell_lambda(n: usize, lbds: Vec<f64>, seed: u64, max_evals: usize) -> PyResult<usize> {
-    let max_evals = NEvals(max_evals);
+fn onell_lambda(n: usize, lbds: Vec<f64>, seed: u64, max_evals: usize) -> PyResult<u64> {
+    let max_evals = NEvals::N(max_evals);
     let mut rng: Mt64 = SeedableRng::seed_from_u64(seed);
     let mut x = random_bits(&mut rng, n);
     let mut n_evals = NEvals::new();
@@ -163,12 +196,12 @@ fn onell_lambda(n: usize, lbds: Vec<f64>, seed: u64, max_evals: usize) -> PyResu
     if x.count_ones() != n {
         n_evals.make_big()
     }
-    Ok(n_evals.0)
+    Ok(n_evals.export())
 }
 
 #[pyfunction]
-fn onell_dynamic_theory(n: usize, seed: u64, max_evals: usize) -> PyResult<usize> {
-    let max_evals = NEvals(max_evals);
+fn onell_dynamic_theory(n: usize, seed: u64, max_evals: usize) -> PyResult<u64> {
+    let max_evals = NEvals::N(max_evals);
     let mut rng: Mt64 = SeedableRng::seed_from_u64(seed);
     let mut x = random_bits(&mut rng, n);
     let mut n_evals = NEvals::new();
@@ -182,12 +215,12 @@ fn onell_dynamic_theory(n: usize, seed: u64, max_evals: usize) -> PyResult<usize
     if x.count_ones() != n {
         n_evals.make_big()
     }
-    Ok(n_evals.0)
+    Ok(n_evals.export())
 }
 
 #[pyfunction]
-fn onell_five_parameters(n: usize, seed: u64, max_evals: usize) -> PyResult<usize> {
-    let max_evals = NEvals(max_evals);
+fn onell_five_parameters(n: usize, seed: u64, max_evals: usize) -> PyResult<u64> {
+    let max_evals = NEvals::N(max_evals);
     let mut rng: Mt64 = SeedableRng::seed_from_u64(seed);
     let mut x = random_bits(&mut rng, n);
     let mut n_evals = NEvals::new();
@@ -238,7 +271,7 @@ fn onell_five_parameters(n: usize, seed: u64, max_evals: usize) -> PyResult<usiz
         n_evals.make_big();
     }
 
-    return Ok(n_evals.0);
+    return Ok(n_evals.export());
 }
 
 /// A Python module implemented in Rust.

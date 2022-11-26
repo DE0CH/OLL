@@ -2,7 +2,7 @@
 
 import sys
 from onell_algs_rs import onell_lambda
-from config import iterative_seeding_multiples, iterative_seeding_sizes, suppress_stderr, get_iter_bins, flatten_lbds
+from config import iterative_seeding_multiples, iterative_seeding_sizes, suppress_stderr, get_iter_bins, flatten_lbds, c_string, d_string
 
 seed = int(sys.argv[3])
 instance = sys.argv[4]
@@ -24,5 +24,5 @@ lbds = flatten_lbds(lbd_bins, get_iter_bins(n, bin_count))
 
 with suppress_stderr():
   c = onell_lambda(n, lbds, seed, bound)
-print(c)
-print(c)
+print(c_string(c))
+print(d_string(c))

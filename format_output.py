@@ -10,7 +10,7 @@
 }
 '''
 
-from config import N, sizes, experiment_types, descent_rates, get_cutoff, experiment_multiples_dynamic_bin, get_bins, experiment_multiples_dynamic, experiment_multiples_static, N2, iterative_seeding_sizes, iterative_seeding_multiples, iterative_seeding_iterations, iterative_seeding_seeds, get_iter_bins
+from config import N, sizes, experiment_types, descent_rates, get_cutoff, experiment_multiples_dynamic_bin, get_bins, experiment_multiples_dynamic, experiment_multiples_static, N2, iterative_seeding_sizes, iterative_seeding_multiples, iterative_seeding_iterations, iterative_seeding_seeds, get_iter_bins, binning_with_dynamic_sizes, binning_with_dynamic_seeds, binning_with_dynamic_iterations, get_dynamic_theory_lbd, BinningWithDynamicStrategy
 from decoder import IraceDecoder
 import json
 import os
@@ -210,6 +210,32 @@ for experiment_type in experiment_types:
             'evaluation_results': evaluation_result,
             'best_configuration': {'fx': fx, 'lbd': lbd}
           })
+  elif experiment_type in ['binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle']:
+    mm = {
+      'binning_with_dynamic_start': BinningWithDynamicStrategy.start, 
+      'binning_with_dynamic_end': BinningWithDynamicStrategy.end,
+      'binning_with_dynamic_middle': BinningWithDynamicStrategy.middle
+    }
+    for i in range(N2):
+      bin_count = binning_with_dynamic_iterations[i]
+      n = binning_with_dynamic_sizes[i]
+      experiment = experiment_type
+      fx = get_iter_bins(n, bin_count)[:-1]
+      lbd = get_dynamic_theory_lbd(n, bin_count, mm[experiment_type])
+      try:
+        evaluation_result = read_evaluation_from_json(f'irace_output/performance_{experiment_type}_{i}_{binning_with_dynamic_seeds[i]}.json')
+      except:
+        print(f"no evaluation result for {experiment_type} {i}")
+      data.append({
+        'n': n,
+        'experiment': experiment,
+        'max_evals': 0,
+        'tuning_budget': 0,
+        'tuning_time':0,
+        'evaluation_results': evaluation_result,
+        'best_configuration': {'fx': fx, 'lbd': lbd}
+      })
+      
   else: 
     raise NotImplementedError()
 

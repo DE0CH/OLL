@@ -212,6 +212,8 @@ fn crossover<R: rand::Rng>(
     let y = children
         .max_by(|x, y| x.count_ones().cmp(&y.count_ones()))
         .unwrap();
+
+    // By design, this returns x_prime when the two have the same fitness score. 
     let y = [y, x_prime]
         .into_iter()
         .max_by(|x, y| x.count_ones().cmp(&y.count_ones()))

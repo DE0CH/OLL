@@ -25,7 +25,7 @@ else:
   M = 13
 
 trials = 500 
-threads = int(multiprocessing.cpu_count() * 0.75)
+threads = int(multiprocessing.cpu_count() * 1.25)
 smac_instances = 36
 seed = 16950281577708742744
 seed_small = 2213319694
@@ -137,7 +137,7 @@ def graph(json_path, png_path, dynamic_lbd_performance, dynamic_lbd_bin_performa
   figure.savefig(png_path, dpi=300)
 
 def get_cutoff(size):
-  if size == 5000:
+  if size == 5000 or size == 4000:
     return 250000
   return 99999999
 
@@ -184,18 +184,21 @@ def load_or_run_binning_comparison_validation(size, file_name, best_config, seed
 min_cpu_usage = 0.75
 max_cpu_usage = 0.95
 
-N2 = 1
+N2 = 2
 if SMALL == 'small':
-  iterative_seeding_sizes = [20]
-  iterative_seeding_multiples = [[50] * 5]
-  iterative_seeding_iterations = [5]
+  iterative_seeding_sizes = [20, 40]
+  iterative_seeding_multiples = [[50] * 5, [50] * 6]
+  iterative_seeding_iterations = [5, 6]
 elif SMALL == 'xsmall':
   raise NotImplementedError('xsmall is no longer supported')
 else:
-  iterative_seeding_sizes = [2000]
-  iterative_seeding_multiples = [[10] * 11]
-  iterative_seeding_iterations = [11]
-iterative_seeding_seeds = [[[45937, 35062, 62556, 33221, 62291, 56368, 64176, 53501, 38816, 48628, 56170], [41639, 48005, 47960, 44150, 36705, 55294, 63274, 64432, 35089, 41214, 34467]]] # tuner_seed, grapher_seed
+  iterative_seeding_sizes = [2000, 4000]
+  iterative_seeding_multiples = [[10] * 11, [10] * 12]
+  iterative_seeding_iterations = [11, 12]
+iterative_seeding_seeds = [
+  [[45937, 35062, 62556, 33221, 62291, 56368, 64176, 53501, 38816, 48628, 56170], [41639, 48005, 47960, 44150, 36705, 55294, 63274, 64432, 35089, 41214, 34467]],
+  [[64752, 44788, 48831, 44689, 57412, 55395, 57062, 47129, 59139, 64221, 53506, 37951], [40895, 55427, 42053, 42228, 44567, 64559, 53729, 44427, 33403, 34618, 56112, 51163]]
+] # tuner_seed, grapher_seed
 
 if SMALL == 'small':
   binning_with_dynamic_sizes = [20]

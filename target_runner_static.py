@@ -16,5 +16,5 @@ lbds = [lbd]*n
 
 with suppress_stderr():
   c = onell_lambda(n, lbds, seed, bound)
-print(c_string(c))
-print(d_string(c))
+print(c_string(c, n, bound))
+print(d_string(c, n, bound))

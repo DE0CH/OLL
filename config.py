@@ -192,8 +192,8 @@ if SMALL == 'small':
 elif SMALL == 'xsmall':
   raise NotImplementedError('xsmall is no longer supported')
 else:
-  iterative_seeding_sizes = [2000, 4000]
-  iterative_seeding_multiples = [[10] * 11, [10] * 12]
+  iterative_seeding_sizes = [2000, 3000]
+  iterative_seeding_multiples = [[10] * 11, [7] * 12]
   iterative_seeding_iterations = [11, 12]
 iterative_seeding_seeds = [
   [[45937, 35062, 62556, 33221, 62291, 56368, 64176, 53501, 38816, 48628, 56170], [41639, 48005, 47960, 44150, 36705, 55294, 63274, 64432, 35089, 41214, 34467]],
@@ -249,14 +249,20 @@ def get_dynamic_theory_lbd(size, bin_count, strategy: BinningWithDynamicStrategy
     raise NotImplementedError("The current BinningWithDynamicStrategy is not implemented")
   return lbds
 
-def c_string(c):
+def c_string(c, size, bound):
   if c == 2**64-1:
-    return 'Inf'
+    if bound == get_cutoff(size):
+      return 'Inf'
+    else:
+      return str(bound + 1)
   else:
     return str(c)
 
-def d_string(c):
+def d_string(c, size, bound):
   if c == 2**64-1:
-    return '0'
+    if bound == get_cutoff(size):
+      return '0'
+    else:
+      return str(bound + 1)
   else:
     return str(c)

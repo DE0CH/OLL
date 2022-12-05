@@ -71,7 +71,7 @@ class IraceCaller:
         f.write(f"configurationsFile = \"{os.path.basename(self.configurations_file)}\"")
 
   def call_and_record(self, read_recovery=True): 
-    output_f = open(f"irace_output/{self.output_file}.progress", 'w') 
+    output_f = open(f"irace_output/{self.output_file}.progress", 'w', buffering=1) 
     args = [
       "--parallel", str(threads), 
       "--seed", str(self.seed), 

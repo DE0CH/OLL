@@ -152,7 +152,7 @@ def suppress_stderr():
             yield (err, )
   
 
-experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison', 'binning_comparison_with_static', 'dynamic_with_static', 'binning_with_defaults', 'binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle']
+experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison', 'binning_comparison_with_static', 'dynamic_with_static', 'binning_with_defaults', 'binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle', 'binning_no_defaults']
 
 def load_or_run_binning_comparison_validation(size, file_name, best_config, seeds, pool, logging=False):
     if not logging:
@@ -201,13 +201,13 @@ iterative_seeding_seeds = [
 ] # tuner_seed, grapher_seed
 
 if SMALL == 'small':
-  binning_with_dynamic_sizes = [20]
-  binning_with_dynamic_iterations = [5]
+  binning_with_dynamic_sizes = [20, 40]
+  binning_with_dynamic_iterations = [5, 6]
 else:
-  binning_with_dynamic_sizes = [2000]
-  binning_with_dynamic_iterations = [11]
+  binning_with_dynamic_sizes = [2000, 3000]
+  binning_with_dynamic_iterations = [11, 12]
 
-binning_with_dynamic_seeds = [50043]
+binning_with_dynamic_seeds = [50043, 39994]
 
 def get_iter_bins(size, bin_count):
   res = [0]

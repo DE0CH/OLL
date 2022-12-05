@@ -22,4 +22,5 @@ for i in range(N):
 rng.integers(1<<15, (1<<16) - 1, 10)
 rng.integers(1<<15, (1<<16) - 1, 12)
 rng.integers(1<<15, (1<<16) - 1, 1)
-print(*rng.integers(1<<15, (1<<16) - 1, 24), sep=', ')
+rng.integers(1<<15, (1<<16) - 1, 24)
+print(rng.integers(1<<15, (1<<16) - 1, 1))

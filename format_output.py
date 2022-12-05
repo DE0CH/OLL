@@ -181,7 +181,7 @@ for experiment_type in experiment_types:
           except:
             print(f'exception for {experiment_type} {n} {experiment_multiple}') 
             logging.exception('')
-  elif experiment_type in ['binning_with_defaults']:
+  elif experiment_type in ['binning_with_defaults', 'binning_no_defaults']:
     for i in range(N2):
       n = iterative_seeding_sizes[i]
       max_evals = get_cutoff(n)
@@ -199,7 +199,7 @@ for experiment_type in experiment_types:
         try:
           evaluation_logs = read_evaluation_from_json(f"irace_output/performance_{experiment_type}_{n}_{iterative_seeding_multiples[i][j]}_{j}_{iterative_seeding_seeds[i][0][j]}_{iterative_seeding_seeds[i][1][j]}.json.log.json")
         except:
-          print(f"no log found")
+          print(f"no log found for {experiment_type} {n} {j}")
           failed = True
         try:
           lbd = read_data_from_irace_output(f"irace_output/irace_output_{experiment_type}_{n}_{iterative_seeding_multiples[i][j]}_{j}_{iterative_seeding_seeds[i][0][j]}.txt")
@@ -246,7 +246,7 @@ for experiment_type in experiment_types:
     raise NotImplementedError()
 
 with open('main_data.json', 'w') as f:
-  json.dump(data, f, indent=2)
+  json.dump(data, f)
 
 
 

@@ -281,6 +281,10 @@ def onell_eval(f, n, lbds, seed):
         print(f"Capped with {f}, {n}, {lbds}, {seed}")
     return res[2]
 
+class IraceCallerBinningNoDefaults(IraceCallerBinningWithDefaults):
+  def __init__(self, size, i, experiment_multiple, default_lbds, bins, seed, type_name="binning_no_defaults"): 
+    super().__init__(size, i, experiment_multiple, default_lbds, bins, seed, type_name=type_name)
+
 def graph(n, static_multiple, dynamic_multiple, static_lbd, dynamic_lbd, pool):
   _graph(n, "irace_output", static_multiple, dynamic_multiple, static_lbd, dynamic_lbd, rng, pool)
 

@@ -17,6 +17,7 @@ import time
 import sys
 import psutil
 import shlex
+import shutil
 
 rng = numpy.random.default_rng(seed)
 job_queue = Queue()
@@ -27,6 +28,9 @@ worker_count_lock = threading.Lock()
 worker_serial = 0
 has_failed = False
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(levelname)s: %(message)s',  datefmt="%m/%d/%Y %I:%M:%S %p %Z")
+is_cirrus = shutil.which('srun') is not None
+if is_cirrus:
+  logging.info("detected running on cirrus, so using srun to distribute workload")
 
 class JobType(Enum):
   baseline = 'baseline'
@@ -45,6 +49,7 @@ def worker(name):
     logging.info(f"{name} waiting for job")
     s, cv = job_queue.get()
     logging.info(f"{name}: got job: {s}")
+    s = ['srun', '--partition=standard', '--qos==standard', '--time=24:00:00', '--exclusive'] + s
     logging.info(f"{name}: running {s}")
     if not no_op:
       p = subprocess.run(s, capture_output=True)
@@ -174,13 +179,18 @@ def worker_adjustment():
       
 
 def main(job_type: JobType):
-  for i in range(2):
+  if is_cirrus:
+    initial_worker_count = 60
+  else:
+    initial_worker_count = 2
+  for i in range(initial_worker_count):
     global target_worker_count, current_worker_count, worker_serial
     Thread(target=worker, args=(f"mock-pc{i}", ), daemon=True).start()
-    target_worker_count = 2
-    current_worker_count = 2
-    worker_serial = 2
-  Thread(target=worker_adjustment, args=(), daemon=True).start()
+    target_worker_count = initial_worker_count
+    current_worker_count = initial_worker_count
+    worker_serial = initial_worker_count
+  if not is_cirrus:
+    Thread(target=worker_adjustment, args=(), daemon=True).start()
   runs = []
   if job_type == JobType.baseline or job_type == JobType.full:
     runs += [Thread(target=run_baseline_full, args=(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1))) for i in range(N)]

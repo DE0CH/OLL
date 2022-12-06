@@ -49,7 +49,7 @@ def worker(name):
     logging.info(f"{name} waiting for job")
     s, cv = job_queue.get()
     logging.info(f"{name}: got job: {s}")
-    s = ['srun', '--partition=standard', '--qos==standard', '--time=24:00:00', '--exclusive'] + s
+    s = ['srun', '--partition=standard', '--qos=standard', '--time=24:00:00', '--exclusive'] + s
     logging.info(f"{name}: running {s}")
     if not no_op:
       p = subprocess.run(s, capture_output=True)

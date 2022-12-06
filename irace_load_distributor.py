@@ -18,6 +18,7 @@ import sys
 import psutil
 import shlex
 import shutil
+import signal
 
 rng = numpy.random.default_rng(seed)
 job_queue = Queue()
@@ -31,6 +32,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(levelname)s: %(me
 is_cirrus = shutil.which('srun') is not None
 if is_cirrus:
   logging.info("detected running on cirrus, so using srun to distribute workload")
+running = True
+running_processes = set()
+running_processes_lock = threading.Lock()
 
 class JobType(Enum):
   baseline = 'baseline'
@@ -45,22 +49,32 @@ class JobType(Enum):
     return self.value
 
 def worker(name):
-  while True:
+  while running:
     logging.info(f"{name} waiting for job")
     s, cv = job_queue.get()
     logging.info(f"{name}: got job: {s}")
-    s = ['srun', '--partition=standard', '--qos=standard', '--time=24:00:00', '--exclusive'] + s
-    logging.info(f"{name}: running {s}")
+    if is_cirrus:
+      s = [shutil.which('srun'), '--partition=standard', '--qos=long', '--time=336:00:00', '--exclusive'] + s
     if not no_op:
-      p = subprocess.run(s, capture_output=True)
+      with running_processes_lock:
+        print(running)
+        if not running:
+          logging.info(f"Stop running {s} because running flag is set to FALSE")
+          return
+        logging.info(f"{name}: running {s}")
+        p = subprocess.Popen(s, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+        running_processes.add(p)
+      p.wait()
       if p.returncode != 0:
         global has_failed
         logging.error(f"{s} had non zero return code")
         logging.info(f"try {shlex.join(s)}")
         has_failed = True
     logging.info(f"{name}: finished running {s}")
-    cv.set()
-    job_queue.task_done()
+    with running_processes_lock:
+      cv.set()
+      job_queue.task_done()
+      running_processes.remove(p)
     global current_worker_count, target_worker_count, worker_count_lock
     with worker_count_lock:
       if target_worker_count < current_worker_count:
@@ -233,6 +247,7 @@ def main(job_type: JobType):
   for thread in runs:
     thread.join()
   job_queue.join()
+
   if has_failed:
     return 1
   else:
@@ -245,6 +260,13 @@ if __name__ == '__main__':
   parser.add_argument('--np', default=False, action='store_true')
   args = parser.parse_args()
   no_op = args.np
-  exit(main(args.job_type))
-
-
+  try:
+    exit(main(args.job_type))
+  except KeyboardInterrupt:
+    logging.info("Caught SIGINT, stopping worker processes and exiting")
+    running = False
+    with running_processes_lock:
+      for p in running_processes:
+        p.send_signal(signal.SIGINT)
+    logging.info("Please hit control c again") 
+    raise

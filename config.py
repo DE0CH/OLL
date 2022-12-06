@@ -184,7 +184,11 @@ def load_or_run_binning_comparison_validation(size, file_name, best_config, seed
 min_cpu_usage = 0.75
 max_cpu_usage = 0.95
 
-N2 = 2
+if SMALL == 'small':
+  N2 = 2
+else:
+  N2 = 4
+
 if SMALL == 'small':
   iterative_seeding_sizes = [20, 40]
   iterative_seeding_multiples = [[50] * 5, [50] * 6]
@@ -192,22 +196,24 @@ if SMALL == 'small':
 elif SMALL == 'xsmall':
   raise NotImplementedError('xsmall is no longer supported')
 else:
-  iterative_seeding_sizes = [2000, 3000]
-  iterative_seeding_multiples = [[10] * 11, [7] * 12]
-  iterative_seeding_iterations = [11, 12]
+  iterative_seeding_sizes = [2000, 3000, 500, 1000]
+  iterative_seeding_multiples = [[10] * 11, [7] * 12, [10] * 9, [10] * 10]
+  iterative_seeding_iterations = [11, 12, 9, 10]
 iterative_seeding_seeds = [
   [[45937, 35062, 62556, 33221, 62291, 56368, 64176, 53501, 38816, 48628, 56170], [41639, 48005, 47960, 44150, 36705, 55294, 63274, 64432, 35089, 41214, 34467]],
-  [[64752, 44788, 48831, 44689, 57412, 55395, 57062, 47129, 59139, 64221, 53506, 37951], [40895, 55427, 42053, 42228, 44567, 64559, 53729, 44427, 33403, 34618, 56112, 51163]]
+  [[64752, 44788, 48831, 44689, 57412, 55395, 57062, 47129, 59139, 64221, 53506, 37951], [40895, 55427, 42053, 42228, 44567, 64559, 53729, 44427, 33403, 34618, 56112, 51163]],
+  [[61399, 60059, 49072, 45454, 61011, 51557, 37357, 38997, 62510], [51865, 50622, 57932, 51864, 61672, 33226, 41980, 37757, 57918]],
+  [[65329, 63900, 62488, 59570, 64864, 35518, 52107, 62970, 38398, 55654], [47929, 65221, 45302, 54322, 53979, 39677, 45773, 44390, 43380, 59791]],
 ] # tuner_seed, grapher_seed
 
 if SMALL == 'small':
   binning_with_dynamic_sizes = [20, 40]
   binning_with_dynamic_iterations = [5, 6]
 else:
-  binning_with_dynamic_sizes = [2000, 3000]
-  binning_with_dynamic_iterations = [11, 12]
+  binning_with_dynamic_sizes = [2000, 3000, 500, 1000]
+  binning_with_dynamic_iterations = [11, 12, 9, 10]
 
-binning_with_dynamic_seeds = [50043, 39994]
+binning_with_dynamic_seeds = [50043, 39994, 50380, 64481]
 
 def get_iter_bins(size, bin_count):
   res = [0]

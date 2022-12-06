@@ -62,7 +62,7 @@ def worker(name):
           logging.info(f"Stop running {s} because running flag is set to FALSE")
           return
         logging.info(f"{name}: running {s}")
-        p = subprocess.Popen(s, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+        p = subprocess.Popen(s, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         running_processes.add(p)
       p.wait()
       if p.returncode != 0:

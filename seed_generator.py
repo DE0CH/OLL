@@ -25,7 +25,8 @@ rng.integers(1<<15, (1<<16) - 1, 1)
 rng.integers(1<<15, (1<<16) - 1, 24)
 rng.integers(1<<15, (1<<16) - 1, 1)
 rng.integers(1<<15, (1<<16) - 1, 18)
-print(list(rng.integers(1<<15, (1<<16) - 1, 20)))
-print(rng.integers(1<<15, (1<<16) - 1, 2))
+list(rng.integers(1<<15, (1<<16) - 1, 20))
+rng.integers(1<<15, (1<<16) - 1, 2)
+print(list(rng.integers(1<<15, (1<<16) - 1, 2)))
 
 

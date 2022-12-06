@@ -10,7 +10,7 @@
 }
 '''
 
-from config import N, sizes, experiment_types, descent_rates, get_cutoff, experiment_multiples_dynamic_bin, get_bins, experiment_multiples_dynamic, experiment_multiples_static, N2, iterative_seeding_sizes, iterative_seeding_multiples, iterative_seeding_iterations, iterative_seeding_seeds, get_iter_bins, binning_with_dynamic_sizes, binning_with_dynamic_seeds, binning_with_dynamic_iterations, get_dynamic_theory_lbd, BinningWithDynamicStrategy
+from config import N, sizes, experiment_types, descent_rates, get_cutoff, experiment_multiples_dynamic_bin, get_bins, experiment_multiples_dynamic, experiment_multiples_static, N2, iterative_seeding_sizes, iterative_seeding_multiples, iterative_seeding_iterations, iterative_seeding_seeds, get_iter_bins, binning_with_dynamic_sizes, binning_with_dynamic_seeds, binning_with_dynamic_iterations, get_dynamic_theory_lbd, BinningWithPolicyStrategy, N3, get_dp_lbd, binning_with_dp_sizes, binning_with_dp_iterations, binning_with_dp_seeds
 from decoder import IraceDecoder
 import json
 import os
@@ -216,20 +216,41 @@ for experiment_type in experiment_types:
             'evaluation_logs': evaluation_logs,
             'best_configuration': {'fx': fx, 'lbd': lbd}
           })
-  elif experiment_type in ['binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle']:
+  elif experiment_type in ['binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle', 'binning_with_dp_start', 'binning_with_dp_end', 'binning_with_dp_middle']:
     mm = {
-      'binning_with_dynamic_start': BinningWithDynamicStrategy.start, 
-      'binning_with_dynamic_end': BinningWithDynamicStrategy.end,
-      'binning_with_dynamic_middle': BinningWithDynamicStrategy.middle
+      'binning_with_dynamic_start': BinningWithPolicyStrategy.start, 
+      'binning_with_dynamic_end': BinningWithPolicyStrategy.end,
+      'binning_with_dynamic_middle': BinningWithPolicyStrategy.middle,
+      'binning_with_dp_start': BinningWithPolicyStrategy.start, 
+      'binning_with_dp_end': BinningWithPolicyStrategy.end,
+      'binning_with_dp_middle': BinningWithPolicyStrategy.middle,
     }
-    for i in range(N2):
-      bin_count = binning_with_dynamic_iterations[i]
-      n = binning_with_dynamic_sizes[i]
+    if experiment_type in ['binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle']:
+      N = N2
+    elif experiment_type in ['binning_with_dp_start', 'binning_with_dp_end', 'binning_with_dp_middle']:
+      N = N3
+    else:
+      raise NotImplementedError("")
+    for i in range(N):
+      if experiment_type in ['binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle']:
+        bin_count = binning_with_dynamic_iterations[i]
+        n = binning_with_dynamic_sizes[i]
+      elif experiment_type in ['binning_with_dp_start', 'binning_with_dp_end', 'binning_with_dp_middle']:
+        bin_count = binning_with_dp_iterations[i]
+        n = binning_with_dp_sizes[i]
+      else:
+        raise NotImplementedError("")
       experiment = experiment_type
       fx = get_iter_bins(n, bin_count)[:-1]
-      lbd = get_dynamic_theory_lbd(n, bin_count, mm[experiment_type])
+      lbd = get_dp_lbd(n, bin_count, mm[experiment_type])
       try:
-        evaluation_result = read_evaluation_from_json(f'irace_output/performance_{experiment_type}_{i}_{binning_with_dynamic_seeds[i]}.json')
+        if experiment_type in ['binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle']:
+          seed = binning_with_dynamic_seeds[i]
+        elif experiment_type in ['binning_with_dp_start', 'binning_with_dp_end', 'binning_with_dp_middle']:
+          seed = binning_with_dp_seeds[i]
+        else:
+          raise NotImplementedError("")
+        evaluation_result = read_evaluation_from_json(f'irace_output/performance_{experiment_type}_{i}_{seed}.json')
       except:
         print(f"no evaluation result for {experiment_type} {i}")
       data.append({

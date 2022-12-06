@@ -3,7 +3,7 @@ import subprocess
 import threading
 from threading import Thread
 import pathlib
-from config import graph, seed, N, M, min_cpu_usage, max_cpu_usage, iterative_seeding_seeds, N2
+from config import graph, seed, N, M, min_cpu_usage, max_cpu_usage, iterative_seeding_seeds, N2, N3
 import numpy
 import argparse
 import os
@@ -44,6 +44,7 @@ class JobType(Enum):
   binning_with_defaults = 'binning_with_defaults'
   binning_with_dynamic = 'binning_with_dynamic'
   binning_no_defaults = 'binning_no_defaults'
+  binning_with_dp = 'binning_with_dp'
   full = 'full'
   def __str__(self):
     return self.value
@@ -173,6 +174,12 @@ def run_binning_with_dynamic(i):
   job_queue.put(([sys.executable, 'eval_binning_with_dynamic.py', i], cv))
   cv.wait()
 
+def run_binning_with_dp(i):
+  i = str(i)
+  cv = Event()
+  job_queue.put(([sys.executable, 'eval_binning_with_dp.py', i], cv))
+  cv.wait()
+
 def worker_adjustment():
   global target_worker_count, current_worker_count, worker_serial, worker_count_lock
   while True:
@@ -242,6 +249,8 @@ def main(job_type: JobType):
     runs += [Thread(target=run_binning_no_defaults, args=(i, iterative_seeding_seeds[i][0], iterative_seeding_seeds[i][1])) for i in range(N2)]
   if job_type == JobType.binning_with_dynamic or job_type == JobType.full:
     runs += [Thread(target=run_binning_with_dynamic, args=(i,)) for i in range(N2)]
+  if job_type == JobType.binning_with_dp or job_type == JobType.full:
+    runs += [Thread(target=run_binning_with_dp, args=(i,)) for i in range(N3)]
   for thread in runs:
     thread.start()
   for thread in runs:

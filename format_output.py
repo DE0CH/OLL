@@ -232,17 +232,19 @@ for experiment_type in experiment_types:
     else:
       raise NotImplementedError("")
     for i in range(N):
+      failed = False
       if experiment_type in ['binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle']:
         bin_count = binning_with_dynamic_iterations[i]
         n = binning_with_dynamic_sizes[i]
+        lbd = get_dynamic_theory_lbd(n, bin_count, mm[experiment_type])
       elif experiment_type in ['binning_with_dp_start', 'binning_with_dp_end', 'binning_with_dp_middle']:
         bin_count = binning_with_dp_iterations[i]
         n = binning_with_dp_sizes[i]
+        lbd = get_dp_lbd(n, bin_count, mm[experiment_type])
       else:
         raise NotImplementedError("")
       experiment = experiment_type
       fx = get_iter_bins(n, bin_count)[:-1]
-      lbd = get_dp_lbd(n, bin_count, mm[experiment_type])
       try:
         if experiment_type in ['binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle']:
           seed = binning_with_dynamic_seeds[i]
@@ -253,15 +255,17 @@ for experiment_type in experiment_types:
         evaluation_result = read_evaluation_from_json(f'irace_output/performance_{experiment_type}_{i}_{seed}.json')
       except:
         print(f"no evaluation result for {experiment_type} {i}")
-      data.append({
-        'n': n,
-        'experiment': experiment,
-        'max_evals': 0,
-        'tuning_budget': 0,
-        'tuning_time':0,
-        'evaluation_results': evaluation_result,
-        'best_configuration': {'fx': fx, 'lbd': lbd}
-      })
+        failed = True
+      if not failed:
+        data.append({
+          'n': n,
+          'experiment': experiment,
+          'max_evals': 0,
+          'tuning_budget': 0,
+          'tuning_time':0,
+          'evaluation_results': evaluation_result,
+          'best_configuration': {'fx': fx, 'lbd': lbd}
+        })
       
   else: 
     raise NotImplementedError()

@@ -152,7 +152,7 @@ def suppress_stderr():
             yield (err, )
   
 
-experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison', 'binning_comparison_with_static', 'dynamic_with_static', 'binning_with_defaults', 'binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle', 'binning_no_defaults']
+experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison', 'binning_comparison_with_static', 'dynamic_with_static', 'binning_with_defaults', 'binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle', 'binning_no_defaults', 'binning_with_dp_start', 'binning_with_dp_end', 'binning_with_dp_middle']
 
 def load_or_run_binning_comparison_validation(size, file_name, best_config, seeds, pool, logging=False):
     if not logging:
@@ -254,7 +254,7 @@ def get_dynamic_theory_lbd(size, bin_count, strategy: BinningWithPolicyStrategy)
 
 def get_dp_lbd(size, bin_count, strategy: BinningWithPolicyStrategy):
   if size not in binning_with_dp_sizes:
-    raise NotImplementedError("No data for the required size")
+    raise NotImplementedError(f"No data for the required size {size}")
   return get_binning_policy_lbd(size, bin_count, strategy, lambda x: dp_policies[size][x])
 
 def get_binning_policy_lbd(size, bin_count, strategy: BinningWithPolicyStrategy, f):

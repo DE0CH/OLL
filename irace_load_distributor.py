@@ -65,7 +65,6 @@ def worker(name):
       s = [shutil.which('srun'), '--partition=standard', '--qos=long', '--time=336:00:00', '--exclusive'] + s
     if not no_op:
       with running_processes_lock:
-        print(running)
         if not running:
           logging.info(f"Stop running {s} because running flag is set to FALSE")
           return

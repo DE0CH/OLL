@@ -24,7 +24,10 @@ if SMALL == "small" or SMALL == 'xsmall':
 else:
   M = 13
 
-trials = 500 
+if SMALL == 'small':
+  trials = 3
+else:
+  trials = 500 
 threads = int(multiprocessing.cpu_count() * 1.25)
 smac_instances = 36
 seed = 16950281577708742744

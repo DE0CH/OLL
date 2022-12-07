@@ -49,6 +49,13 @@ class JobType(Enum):
   def __str__(self):
     return self.value
 
+# Later down the road I decided to give the ability to give multiple jobs but in many places of the code I just have it compare if job type is something, now this hack makes equality is actually the in statement. 
+class JobTypeHack():
+  def __init__(self, job_types):
+    self.job_types = job_types
+  def __eq__(self, b):
+    return b in self.job_types
+
 def worker(name):
   while running:
     logging.info(f"{name} waiting for job")
@@ -265,17 +272,18 @@ def main(job_type: JobType):
 if __name__ == '__main__':
   logging.info(sys.argv)
   parser = argparse.ArgumentParser()
-  parser.add_argument('job_type', type=JobType, choices=list(JobType), default=JobType.baseline, nargs='?')
+  parser.add_argument('job_types', type=JobType, choices=list(JobType), default=JobType.baseline, nargs='+')
   parser.add_argument('--np', default=False, action='store_true')
   args = parser.parse_args()
   no_op = args.np
+  job_type = JobTypeHack(args.job_types)
   try:
-    exit(main(args.job_type))
+    exit(main(job_type))
   except KeyboardInterrupt:
     logging.info("Caught SIGINT, stopping worker processes and exiting")
     running = False
     with running_processes_lock:
       for p in running_processes:
         p.send_signal(signal.SIGINT)
-    logging.info("Please hit control c again") 
+    logging.info("Please hit control c again if it has not exited.") 
     raise

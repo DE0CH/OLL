@@ -170,6 +170,8 @@ def load_or_run_binning_comparison_validation(size, file_name, best_config, seed
       try:
         with open(f"{file_name}.log.json") as f:
           json.load(f)
+        with open(file_name) as f:
+          json.load(f)
       except:
         results = pool.starmap(onell_lambda_with_log, zip([size]*trials, [best_config] * trials, seeds, [get_cutoff(size)] * trials))
         performances = []

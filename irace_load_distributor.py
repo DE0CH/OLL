@@ -3,7 +3,7 @@ import subprocess
 import threading
 from threading import Thread
 import pathlib
-from config import graph, seed, N, M, min_cpu_usage, max_cpu_usage, iterative_seeding_seeds, N2, N3
+from config import graph, seed, N, M, min_cpu_usage, max_cpu_usage, iterative_seeding_seeds, N2, N3, iterative_seeding_iterations
 import numpy
 import argparse
 import os
@@ -163,16 +163,17 @@ def run_dynamic_with_static_full(i, tuner_seed, grapher_seed):
   cv.wait()
 
 def run_binning_with_defaults(i, tuner_seeds, grapher_seeds):
-  i = str(i)
-  cv = Event()
-  job_queue.put(([sys.executable, 'irace_binning_with_defaults.py', i], cv))
-  cv.wait()
+  for j in range(iterative_seeding_iterations[i]):
+    cv = Event()
+    job_queue.put(([sys.executable, 'irace_binning_with_defaults.py', str(i), str(j)], cv))
+    cv.wait()
 
 def run_binning_no_defaults(i, tuner_seeds, grapher_seeds):
-  i = str(i)
-  cv = Event()
-  job_queue.put(([sys.executable, 'irace_binning_no_defaults.py', i], cv))
-  cv.wait()
+  for j in range(iterative_seeding_iterations[i]):
+    cv = Event()
+    job_queue.put(([sys.executable, 'irace_binning_no_defaults.py', str(i), str(j)], cv))
+    cv.wait()
+
 
 def run_binning_with_dynamic(i):
   i = str(i)

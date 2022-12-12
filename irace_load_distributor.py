@@ -35,6 +35,7 @@ if is_cirrus:
 running = True
 running_processes = set()
 running_processes_lock = threading.Lock()
+slurm_type = os.getenv('SLURM_QOS', '')
 
 class JobType(Enum):
   baseline = 'baseline'
@@ -62,7 +63,10 @@ def worker(name):
     s, cv = job_queue.get()
     logging.info(f"{name}: got job: {s}")
     if is_cirrus:
-      s = [shutil.which('srun'), '--partition=standard', '--qos=long', '--time=336:00:00', '--exclusive'] + s
+      if slurm_type == 'standard':
+        s = [shutil.which('srun'), '--partition=standard', '--qos=standard', '--time=96:00:00', '--exclusive'] + s
+      else:
+        s = [shutil.which('srun'), '--partition=standard', '--qos=long', '--time=336:00:00', '--exclusive'] + s
     if not no_op:
       with running_processes_lock:
         if not running:
@@ -169,9 +173,12 @@ def run_binning_with_defaults(i, tuner_seeds, grapher_seeds):
     cv.wait()
 
 def run_binning_no_defaults(i, tuner_seeds, grapher_seeds):
+  cvs = []
   for j in range(iterative_seeding_iterations[i]):
     cv = Event()
     job_queue.put(([sys.executable, 'irace_binning_no_defaults.py', str(i), str(j)], cv))
+    cvs.append(cv)
+  for cv in cvs:
     cv.wait()
 
 

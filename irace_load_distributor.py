@@ -65,8 +65,10 @@ def worker(name):
     if is_cirrus:
       if slurm_type == 'standard':
         s = [shutil.which('srun'), '--partition=standard', '--qos=standard', '--time=96:00:00', '--exclusive'] + s
-      else:
+      elif slurm_type == 'long' or slurm_type == '':
         s = [shutil.which('srun'), '--partition=standard', '--qos=long', '--time=336:00:00', '--exclusive'] + s
+      else:
+        raise NotImplementedError()
     if not no_op:
       with running_processes_lock:
         if not running:

@@ -17,7 +17,7 @@ if SMALL == "small":
 elif SMALL == "xsmall":
   N = 2
 else:
-  N = 8
+  N = 9
 
 if SMALL == "small" or SMALL == 'xsmall':
   M = 3
@@ -45,6 +45,7 @@ sizes = [
   1000,
   2000,
   5000,
+  3000,
 ]
 
 sizes_reverse = {}
@@ -75,6 +76,7 @@ else:
     50,
     25,
     10,
+    10
   ] 
 
 default_lbds = [
@@ -85,7 +87,8 @@ default_lbds = [
   6.9282,
   6.7279,
   8.0286,
-  8.7281
+  8.7281,
+  1, # We are not doing any experiment that requires seeding with static for n = 3000. This is bad coding practice but I would rather get wrong answer than having it fail. 
 ]
 
 if SMALL=="small":
@@ -93,7 +96,7 @@ if SMALL=="small":
 elif SMALL=="xsmall":
   experiment_multiples_static = [1, 1]
 else: 
-  experiment_multiples_static = [100] * (N-1) + [experiment_multiples_dynamic[-1]]
+  experiment_multiples_static = [100, 100, 100, 100, 100, 100, 100, 10, 10]
 
 experiment_multiples_dynamic_bin = experiment_multiples_dynamic
 

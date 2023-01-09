@@ -1,12 +1,25 @@
 # Format the output of the configurations with the format given by Nguyen
+# This outputs a list of dictionary in json format, for each item in the list, 
+# there are several keys. Below are the keys and their explanation.
+# n: the length of the array in OLL.
+# experiment: the name of the experiment.
+# max_evals: the cutoff time of each OLL run during tuning. This is is give as bound-max to irace.
+# tuning_budget: the tuning budget. This is given as max-experiments to irace.
+# tuning_time: the time used for tuning in second. 0 means no information is available.
+# evaluation_results: a list of results of each evaluation run of the best configuration found by irace.
+# best_configuration: this is a dictionary with two keys
+#     fx: a list of lower bound for each bin. The index counts from 0. For example, [0, 10] when n = 20 means the lbd are for 0 - 19 (inclusive) and 10 - 19 (inclusive).
+#     lbd: the lbd for each bin.
+# evaluation_log: (optional field) undocumented. Ask Deyao @DE0CH for an explanation.
+
 '''
 {       "n":1000,
         "experiment": "dynamic_lbd",
         "max_evals": 10000, # cutoff time of each OneLL run during the tuning
         "tuning_budget": 5000,
-        "tuning_time": 3600, # the true tuning time in seconds, but can be skipped if there's not information available
-        "evaluation_results": [500,600,555,...], # result of each evaluation run of the best configuration found by irace
-        "best_configuration" : {"fx": [0,1,2,3,...,999], "lbd": [1,2,3,...]} # lbd is 1 for 0<=f(x)<1, 2 for 1<=f(x)<2, etc
+        "tuning_time": 3600, 
+        "evaluation_results": [500,600,555,...], 
+        "best_configuration" : {"fx": [0,1,2,3,...,999], "lbd": [1,2,3,...]}
 }
 '''
 
@@ -278,9 +291,9 @@ for experiment_type in experiment_types:
         raise NotImplementedError("")
       
       experiment = {
-        'binning_with_dynamic_start': 'tuned_dyn_bin_start',
-        'binning_with_dynamic_middle': 'tuned_dyn_bin_middle',
-        'binning_with_dynamic_end': 'tuned_dyn_bin_end',
+        'binning_with_dynamic_start': 'binned_theory_dyn_start',
+        'binning_with_dynamic_middle': 'binned_theory_dyn_middle',
+        'binning_with_dynamic_end': 'binned_theory_dyn_end',
         'binning_with_dp_start': 'binned_optimal_dyn_start',
         'binning_with_dp_middle': 'binned_optimal_dyn_middle',
         'binning_with_dp_end': 'binned_optimal_dyn_end',

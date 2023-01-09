@@ -227,8 +227,8 @@ for experiment_type in experiment_types:
         tuner_seed = iterative_seeding_seeds[i][0][j]
         grapher_seed = iterative_seeding_seeds[i][1][j]
         res = binning_wo_de_sc(experiment_type, n, j, multiple, tuner_seed, grapher_seed)
-      if res is not None:
-        data.append(res)
+        if res is not None:
+          data.append(res)
   elif experiment_type in ['binning_no_defaults_sc']:
     for i in range(N4):
       size = binning_no_defaults_sc_n[i]

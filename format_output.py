@@ -3,7 +3,7 @@
 # there are several keys. Below are the keys and their explanation.
 # n: the length of the array in OLL.
 # experiment: the name of the experiment.
-# max_evals: the cutoff time of each OLL run during tuning. This is is give as bound-max to irace.
+# max_evals: the cutoff time of each OLL run during tuning. This is given as bound-max to irace.
 # tuning_budget: the tuning budget. This is given as max-experiments to irace.
 # tuning_time: the time used for tuning in second. 0 means no information is available.
 # evaluation_results: a list of results of each evaluation run of the best configuration found by irace.

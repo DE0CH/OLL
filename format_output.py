@@ -32,12 +32,12 @@ def read_evaluation_from_json(file_name):
   with open(file_name) as f:
     return json.load(f)
 
-def binning_wo_de_sc(experiment_type, size, j, multiple, tuner_seed, grapher_seed):
+def binning_wo_de_sc(experiment_type, experiment_replace_name, size, j, multiple, tuner_seed, grapher_seed):
   n = size
   max_evals = get_cutoff(n)
   tuning_time = 0
   tunning_budget = size * multiple
-  experiment = experiment_type + str(j)
+  experiment = experiment_replace_name + str(j)
   fx = get_iter_bins(n, j+1)[:-1]
   failed = False
   try:
@@ -125,7 +125,13 @@ for experiment_type in experiment_types:
             except:
               logging.exception('')
       else:
-        experiment = experiment_type
+
+        experiment = {
+          'dynamic_theory': 'theory_dyn',
+          'static': 'tuned_static',
+          'dynamic': 'tuned_dyn',
+        }.get(experiment_type, experiment_type)
+
         tuning_time = 0
         if experiment_type == 'dynamic':
           experiment_multiple = experiment_multiples_dynamic[i] 
@@ -226,7 +232,11 @@ for experiment_type in experiment_types:
         multiple = iterative_seeding_multiples[i][j]
         tuner_seed = iterative_seeding_seeds[i][0][j]
         grapher_seed = iterative_seeding_seeds[i][1][j]
-        res = binning_wo_de_sc(experiment_type, n, j, multiple, tuner_seed, grapher_seed)
+        experiment_replace_name = {
+          'binning_with_defaults': 'tuned_dyn_cas_bin',
+          'binning_no_defaults': 'tuned_dyn_bin',
+        }[experiment_type]
+        res = binning_wo_de_sc(experiment_type, experiment_replace_name, n, j, multiple, tuner_seed, grapher_seed)
         if res is not None:
           data.append(res)
   elif experiment_type in ['binning_no_defaults_sc']:
@@ -236,7 +246,7 @@ for experiment_type in experiment_types:
       multiple = binning_no_defaults_sc_multiples[i]
       tuner_seed = binning_no_defaults_sc_seeds[0][i]
       grapher_seed = binning_no_defaults_sc_seeds[1][i]
-      res = binning_wo_de_sc(experiment_type, size, j, multiple, tuner_seed, grapher_seed)
+      res = binning_wo_de_sc(experiment_type, experiment_replace_name, size, j, multiple, tuner_seed, grapher_seed)
       if res is not None:
         data.append(res)
   elif experiment_type in ['binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle', 'binning_with_dp_start', 'binning_with_dp_end', 'binning_with_dp_middle']:
@@ -266,7 +276,16 @@ for experiment_type in experiment_types:
         lbd = get_dp_lbd(n, bin_count, mm[experiment_type])
       else:
         raise NotImplementedError("")
-      experiment = experiment_type
+      
+      experiment = {
+        'binning_with_dynamic_start': 'tuned_dyn_bin_start',
+        'binning_with_dynamic_middle': 'tuned_dyn_bin_middle',
+        'binning_with_dynamic_end': 'tuned_dyn_bin_end',
+        'binning_with_dp_start': 'binned_optimal_dyn_start',
+        'binning_with_dp_middle': 'binned_optimal_dyn_middle',
+        'binning_with_dp_end': 'binned_optimal_dyn_end',
+      }[experiment_type]
+
       fx = get_iter_bins(n, bin_count)[:-1]
       try:
         if experiment_type in ['binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle']:

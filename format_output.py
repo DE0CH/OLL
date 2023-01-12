@@ -1,12 +1,25 @@
 # Format the output of the configurations with the format given by Nguyen
+# This outputs a list of dictionary in json format, for each item in the list, 
+# there are several keys. Below are the keys and their explanation.
+# n: the length of the array in OLL.
+# experiment: the name of the experiment.
+# max_evals: the cutoff time of each OLL run during tuning. This is given as bound-max to irace.
+# tuning_budget: the tuning budget. This is given as max-experiments to irace.
+# tuning_time: the time used for tuning in second. 0 means no information is available.
+# evaluation_results: a list of results of each evaluation run of the best configuration found by irace.
+# best_configuration: this is a dictionary with two keys
+#     fx: a list of lower bound for each bin. The index counts from 0. For example, [0, 10] when n = 20 means the lbd are for 0 - 19 (inclusive) and 10 - 19 (inclusive).
+#     lbd: the lbd for each bin.
+# evaluation_log: (optional field) undocumented. Ask Deyao @DE0CH for an explanation.
+
 '''
 {       "n":1000,
         "experiment": "dynamic_lbd",
-        "max_evals": 10000, # cutoff time of each OneLL run during the tuning
+        "max_evals": 10000,
         "tuning_budget": 5000,
-        "tuning_time": 3600, # the true tuning time in seconds, but can be skipped if there's not information available
-        "evaluation_results": [500,600,555,...], # result of each evaluation run of the best configuration found by irace
-        "best_configuration" : {"fx": [0,1,2,3,...,999], "lbd": [1,2,3,...]} # lbd is 1 for 0<=f(x)<1, 2 for 1<=f(x)<2, etc
+        "tuning_time": 3600, 
+        "evaluation_results": [500,600,555,...], 
+        "best_configuration" : {"fx": [0,1,2,3,...,999], "lbd": [1,2,3,...]}
 }
 '''
 
@@ -32,12 +45,12 @@ def read_evaluation_from_json(file_name):
   with open(file_name) as f:
     return json.load(f)
 
-def binning_wo_de_sc(experiment_type, size, j, multiple, tuner_seed, grapher_seed):
+def binning_wo_de_sc(experiment_type, experiment_replace_name, size, j, multiple, tuner_seed, grapher_seed):
   n = size
   max_evals = get_cutoff(n)
   tuning_time = 0
   tunning_budget = size * multiple
-  experiment = experiment_type + str(j)
+  experiment = experiment_replace_name + str(j)
   fx = get_iter_bins(n, j+1)[:-1]
   failed = False
   try:
@@ -125,7 +138,13 @@ for experiment_type in experiment_types:
             except:
               logging.exception('')
       else:
-        experiment = experiment_type
+
+        experiment = {
+          'dynamic_theory': 'theory_dyn',
+          'static': 'tuned_static',
+          'dynamic': 'tuned_dyn',
+        }.get(experiment_type, experiment_type)
+
         tuning_time = 0
         if experiment_type == 'dynamic':
           experiment_multiple = experiment_multiples_dynamic[i] 
@@ -226,7 +245,11 @@ for experiment_type in experiment_types:
         multiple = iterative_seeding_multiples[i][j]
         tuner_seed = iterative_seeding_seeds[i][0][j]
         grapher_seed = iterative_seeding_seeds[i][1][j]
-        res = binning_wo_de_sc(experiment_type, n, j, multiple, tuner_seed, grapher_seed)
+        experiment_replace_name = {
+          'binning_with_defaults': 'tuned_dyn_cas_bin',
+          'binning_no_defaults': 'tuned_dyn_bin',
+        }[experiment_type]
+        res = binning_wo_de_sc(experiment_type, experiment_replace_name, n, j, multiple, tuner_seed, grapher_seed)
         if res is not None:
           data.append(res)
   elif experiment_type in ['binning_no_defaults_sc']:
@@ -236,7 +259,7 @@ for experiment_type in experiment_types:
       multiple = binning_no_defaults_sc_multiples[i]
       tuner_seed = binning_no_defaults_sc_seeds[0][i]
       grapher_seed = binning_no_defaults_sc_seeds[1][i]
-      res = binning_wo_de_sc(experiment_type, size, j, multiple, tuner_seed, grapher_seed)
+      res = binning_wo_de_sc(experiment_type, experiment_replace_name, size, j, multiple, tuner_seed, grapher_seed)
       if res is not None:
         data.append(res)
   elif experiment_type in ['binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle', 'binning_with_dp_start', 'binning_with_dp_end', 'binning_with_dp_middle']:
@@ -266,7 +289,16 @@ for experiment_type in experiment_types:
         lbd = get_dp_lbd(n, bin_count, mm[experiment_type])
       else:
         raise NotImplementedError("")
-      experiment = experiment_type
+      
+      experiment = {
+        'binning_with_dynamic_start': 'binned_theory_dyn_start',
+        'binning_with_dynamic_middle': 'binned_theory_dyn_middle',
+        'binning_with_dynamic_end': 'binned_theory_dyn_end',
+        'binning_with_dp_start': 'binned_optimal_dyn_start',
+        'binning_with_dp_middle': 'binned_optimal_dyn_middle',
+        'binning_with_dp_end': 'binned_optimal_dyn_end',
+      }[experiment_type]
+
       fx = get_iter_bins(n, bin_count)[:-1]
       try:
         if experiment_type in ['binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle']:

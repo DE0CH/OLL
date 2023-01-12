@@ -15,7 +15,7 @@
 '''
 {       "n":1000,
         "experiment": "dynamic_lbd",
-        "max_evals": 10000, # cutoff time of each OneLL run during the tuning
+        "max_evals": 10000,
         "tuning_budget": 5000,
         "tuning_time": 3600, 
         "evaluation_results": [500,600,555,...], 

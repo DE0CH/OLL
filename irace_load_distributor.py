@@ -3,7 +3,7 @@ import subprocess
 import threading
 from threading import Thread
 import pathlib
-from config import graph, seed, N, M, min_cpu_usage, max_cpu_usage, iterative_seeding_seeds, N2, N3, iterative_seeding_iterations, N4, N_lock, N_baseline_seeds, N_binning_seeds_new, N_binning_with_static_new
+from config import graph, seed, N, M, min_cpu_usage, max_cpu_usage, iterative_seeding_seeds, N2, N3, iterative_seeding_iterations, N4, N_lock, N_baseline_seeds, N_binning_seeds_new, N_binning_with_static_new, N_dynamic_with_static_seeds
 import numpy
 import argparse
 import os
@@ -239,7 +239,7 @@ def main(job_type: JobType):
   runs = []
   if job_type == JobType.baseline or job_type == JobType.full:
     runs += [Thread(target=run_baseline_full, args=(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1))) for i in range(N_lock)]
-    runs += [Thread(target=run_baseline_full, args=(i, N_baseline_seeds[0][j], N_baseline_seeds[1][j], N_baseline_seeds[2][j], N_baseline_seeds[3][j])) for j in range(N - N_lock)]
+    runs += [Thread(target=run_baseline_full, args=(i + N_lock, N_baseline_seeds[0][i], N_baseline_seeds[1][i], N_baseline_seeds[2][i], N_baseline_seeds[3][i])) for i in range(N - N_lock)]
   else: 
     [(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1)) for i in range(N_lock)]
   seeds = []
@@ -264,14 +264,15 @@ def main(job_type: JobType):
     for i in range(N_lock):
       runs.append(Thread(target=run_binning_comparison_with_static_full, args = (i, list(rng.integers(1<<15, (1<<16)-1, M)), list(rng.integers(1<<15, (1<<16)-1, M)))))
     for i in range(N - N_lock):
-      runs.append(Thread(target=run_binning_comparison_with_static_full, args = (i, N_binning_with_static_new[0][i], N_binning_with_static_new[1][i])))
+      runs.append(Thread(target=run_binning_comparison_with_static_full, args = (i + N_lock, N_binning_with_static_new[0][i], N_binning_with_static_new[1][i])))
   else:
     for i in range(N_lock):
       (i, list(rng.integers(1<<15, (1<<16)-1, M)), list(rng.integers(1<<15, (1<<16)-1, M)))
   if job_type == JobType.dynamic_with_static or job_type == JobType.full:
-    runs += [Thread(target=run_dynamic_with_static_full, args=(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1))) for i in range(N)]
+    runs += [Thread(target=run_dynamic_with_static_full, args=(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1))) for i in range(N_lock)]
+    runs += [Thread(target=run_dynamic_with_static_full, args=(i + N_lock, N_dynamic_with_static_seeds[0][i], N_dynamic_with_static_seeds[0][i])) for i in range(N - N_lock)]
   else:
-    [(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1)) for i in range(N)]
+    [(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1)) for i in range(N_lock)]
   if job_type == JobType.binning_with_defaults or job_type == JobType.full:
     runs += [Thread(target=run_binning_with_defaults, args=(i, iterative_seeding_seeds[i][0], iterative_seeding_seeds[i][1])) for i in range(N2)]
   if job_type == JobType.binning_no_defaults or job_type == JobType.full:

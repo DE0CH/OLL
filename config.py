@@ -72,6 +72,11 @@ N_binning_with_static_new = [
   [[55087, 65029, 56297, 63675, 41421, 33054, 64102, 60375, 58352, 39134, 45547, 61359, 64024]],
 ]
 
+N_dynamic_with_static_seeds = [
+  [33014],
+  [35312],
+]
+
 
 sizes_reverse = {}
 for i, size in enumerate(sizes):

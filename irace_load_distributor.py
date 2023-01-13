@@ -88,7 +88,8 @@ def worker(name):
     with running_processes_lock:
       cv.set()
       job_queue.task_done()
-      running_processes.remove(p)
+      if not no_op:
+        running_processes.remove(p)
     global current_worker_count, target_worker_count, worker_count_lock
     with worker_count_lock:
       if target_worker_count < current_worker_count:

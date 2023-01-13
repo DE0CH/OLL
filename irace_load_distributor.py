@@ -3,7 +3,7 @@ import subprocess
 import threading
 from threading import Thread
 import pathlib
-from config import graph, seed, N, M, min_cpu_usage, max_cpu_usage, iterative_seeding_seeds, N2, N3, iterative_seeding_iterations, N4
+from config import graph, seed, N, M, min_cpu_usage, max_cpu_usage, iterative_seeding_seeds, N2, N3, iterative_seeding_iterations, N4, N_lock, N_baseline_seeds, N_binning_seeds_new, N_binning_with_static_new
 import numpy
 import argparse
 import os
@@ -223,6 +223,7 @@ def worker_adjustment():
       
 
 def main(job_type: JobType):
+  assert N >= N_lock, 'Warning: if you decrease N, change places where N_lock is used and make sure seeds don\'t shuffle'
   if is_cirrus:
     initial_worker_count = 60
   else:
@@ -237,13 +238,14 @@ def main(job_type: JobType):
     Thread(target=worker_adjustment, args=(), daemon=True).start()
   runs = []
   if job_type == JobType.baseline or job_type == JobType.full:
-    runs += [Thread(target=run_baseline_full, args=(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1))) for i in range(N)]
+    runs += [Thread(target=run_baseline_full, args=(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1))) for i in range(N_lock)]
+    runs += [Thread(target=run_baseline_full, args=(i, N_baseline_seeds[0][j], N_baseline_seeds[1][j], N_baseline_seeds[2][j], N_baseline_seeds[3][j])) for j in range(N - N_lock)]
   else: 
-    [(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1)) for i in range(N)]
+    [(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1)) for i in range(N_lock)]
   seeds = []
-  for i in range(N): # Seed batch 1 
+  for i in range(N_lock): # Seed batch 1 
     seeds.append((list(rng.integers(1<<15, (1<<16)-1, 11)), list(rng.integers(1<<15, (1<<16)-1, 11))))
-  for i in range(N): # Seed batch 2
+  for i in range(N_lock): # Seed batch 2
     one, two = seeds[i]
     if M > 11:
       one += list(rng.integers(1<<15, (1<<16)-1, M - 11))
@@ -252,15 +254,19 @@ def main(job_type: JobType):
       one = one[:M]
       two = two[:M]
     seeds[i] = (one, two) 
+  for i in range(N - N_lock):
+    seeds.append((N_binning_seeds_new[0][i], N_binning_seeds_new[1][i]))
   if job_type == JobType.binning or job_type == JobType.full:
     for i in range(N):
       one, two = seeds[i]
       runs.append(Thread(target=run_binning_comparison_full, args=(i, one, two)))
   if job_type == JobType.binning_with_static or job_type == JobType.full:
-    for i in range(N):
+    for i in range(N_lock):
       runs.append(Thread(target=run_binning_comparison_with_static_full, args = (i, list(rng.integers(1<<15, (1<<16)-1, M)), list(rng.integers(1<<15, (1<<16)-1, M)))))
+    for i in range(N - N_lock):
+      runs.append(Thread(target=run_binning_comparison_with_static_full, args = (i, N_binning_with_static_new[0][i], N_binning_with_static_new[1][i])))
   else:
-    for i in range(N):
+    for i in range(N_lock):
       (i, list(rng.integers(1<<15, (1<<16)-1, M)), list(rng.integers(1<<15, (1<<16)-1, M)))
   if job_type == JobType.dynamic_with_static or job_type == JobType.full:
     runs += [Thread(target=run_dynamic_with_static_full, args=(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1))) for i in range(N)]

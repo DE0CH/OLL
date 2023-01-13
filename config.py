@@ -14,15 +14,22 @@ EMAIL = os.getenv("EMAIL", "false").strip() == "true"
 
 if SMALL == "small":
   N = 3
+  N_lock = 3
 elif SMALL == "xsmall":
   N = 2
+  N_lock = 2
 else:
   N = 9
+  N_lock = 8
+
+# N_lock used because some seeds will shuffle if N is changed.
 
 if SMALL == "small" or SMALL == 'xsmall':
   M = 3
 else:
   M = 13
+
+# be careful when changing M because changing M will cause seeds to shuffle
 
 if SMALL == 'small':
   trials = 3
@@ -47,6 +54,24 @@ sizes = [
   5000,
   3000,
 ]
+
+N_baseline_seeds = [
+  [63695],
+  [59703],
+  [57290],
+  [40239],
+] # Previous, I generated seeds in irace_load_distributor and soon realized it was a bad idea because it makes adding new configuration without messing up the seeds extremely difficult, but I don't want to touch old code because I can mess it up, so I just retrofit this way of defining seeds after n = 5000
+
+N_binning_seeds_new = [
+  [[58127, 60157, 60010, 49694, 64369, 55020, 37922, 40125, 35448, 43996, 49943, 58824, 40591]],
+  [[34890, 51902, 62805, 39459, 64714, 41456, 42789, 61557, 54121, 56972, 48582, 37467, 58445]],
+]
+
+N_binning_with_static_new = [
+  [[56049, 37079, 44282, 59018, 45498, 37209, 43477, 52292, 60889, 47679, 46931, 60369, 63193]],
+  [[55087, 65029, 56297, 63675, 41421, 33054, 64102, 60375, 58352, 39134, 45547, 61359, 64024]],
+]
+
 
 sizes_reverse = {}
 for i, size in enumerate(sizes):
@@ -88,7 +113,7 @@ default_lbds = [
   6.7279,
   8.0286,
   8.7281,
-  1, # We are not doing any experiment that requires seeding with static for n = 3000. This is bad coding practice but I would rather get wrong answer than having it fail. 
+  0, # We are not doing any experiment that requires seeding with static for n = 3000. I set it to 0 because if I accidentally use it, it would crash instead of giving wrong answers.
 ]
 
 if SMALL=="small":

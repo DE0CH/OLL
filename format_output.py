@@ -29,6 +29,12 @@ import json
 import os
 import re
 import logging
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--nl', '--no-log', action='store_true')
+parser.add_argument('file_name', type=str, nargs='?', default='main_data.json')
+args = parser.parse_args()
 
 tuning_time = 0
 
@@ -69,15 +75,19 @@ def binning_wo_de_sc(experiment_type, experiment_replace_name, size, j, multiple
     print(f"no irace data for {experiment_type} {n} {j} {tuner_seed} {grapher_seed}")
     failed = True
   if not failed:
-    return {
+    res = {
       'n': n,
       'experiment': experiment,
       'max_evals': max_evals,
       'tuning_budget': tunning_budget,
       'evaluation_results': evaluation_result,
-      'evaluation_logs': evaluation_logs,
+
       'best_configuration': {'fx': fx, 'lbd': lbd}
     }
+    if not args.nl:
+      res.update({
+        'evaluation_logs': evaluation_logs,
+      })
   else:
       return None
 
@@ -325,7 +335,7 @@ for experiment_type in experiment_types:
   else: 
     raise NotImplementedError()
 
-with open('main_data.json', 'w') as f:
+with open(args.file_name, 'w') as f:
   json.dump(data, f)
 
 

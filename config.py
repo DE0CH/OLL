@@ -173,7 +173,7 @@ def graph(json_path, png_path, dynamic_lbd_performance, dynamic_lbd_bin_performa
   figure.savefig(png_path, dpi=300)
 
 def get_cutoff(size):
-  if size == 5000 or size == 4000:
+  if size == 5000 or size == 4000 or size == 3000:
     return 250000
   return 99999999
 

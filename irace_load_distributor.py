@@ -36,6 +36,7 @@ running = True
 running_processes = set()
 running_processes_lock = threading.Lock()
 slurm_type = os.getenv('SLURM_QOS', '')
+slurm_account = os.getenv('SLURM_ACCOUNT', '')
 
 class JobType(Enum):
   baseline = 'baseline'
@@ -65,11 +66,14 @@ def worker(name):
     logging.info(f"{name}: got job: {s}")
     if is_cirrus:
       if slurm_type == 'standard':
-        s = [shutil.which('srun'), '--partition=standard', '--qos=standard', '--time=96:00:00', '--exclusive'] + s
+        srun_options = ['--partition=standard', '--qos=standard', '--time=96:00:00', '--exclusive']
       elif slurm_type == 'long' or slurm_type == '':
-        s = [shutil.which('srun'), '--partition=standard', '--qos=long', '--time=336:00:00', '--exclusive'] + s
+        srun_options = ['--partition=standard', '--qos=long', '--time=336:00:00', '--exclusive']
       else:
         raise NotImplementedError()
+      if slurm_account:
+        srun_options += [f'--account={slurm_account}']
+      s = [shutil.which('srun')] + srun_options + s
     if not no_op:
       with running_processes_lock:
         if not running:

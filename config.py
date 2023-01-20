@@ -118,7 +118,7 @@ default_lbds = [
   6.7279,
   8.0286,
   8.7281,
-  0, # We are not doing any experiment that requires seeding with static for n = 3000. I set it to 0 because if I accidentally use it, it would crash instead of giving wrong answers.
+  8.7417,
 ]
 
 if SMALL=="small":

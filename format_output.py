@@ -88,6 +88,7 @@ def binning_wo_de_sc(experiment_type, experiment_replace_name, size, j, multiple
       res.update({
         'evaluation_logs': evaluation_logs,
       })
+    return res
   else:
       return None
 

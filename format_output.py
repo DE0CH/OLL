@@ -88,6 +88,7 @@ def binning_wo_de_sc(experiment_type, experiment_replace_name, size, j, multiple
       res.update({
         'evaluation_logs': evaluation_logs,
       })
+    return res
   else:
       return None
 
@@ -264,6 +265,9 @@ for experiment_type in experiment_types:
           data.append(res)
   elif experiment_type in ['binning_no_defaults_sc']:
     for i in range(N4):
+      experiment_replace_name = {
+        'binning_no_defaults_sc': 'tuned_dyn_bin_sc'
+      }[experiment_type]
       size = binning_no_defaults_sc_n[i]
       j = binning_no_defaults_sc_iteration[i]
       multiple = binning_no_defaults_sc_multiples[i]

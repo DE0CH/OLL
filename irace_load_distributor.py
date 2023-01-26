@@ -3,7 +3,7 @@ import subprocess
 import threading
 from threading import Thread
 import pathlib
-from config import graph, seed, N, M, min_cpu_usage, max_cpu_usage, iterative_seeding_seeds, N2, N3, iterative_seeding_iterations, N4, N_lock, N_baseline_seeds, N_binning_seeds_new, N_binning_with_static_new, N_dynamic_with_static_seeds
+from config import graph, seed, N, M, min_cpu_usage, max_cpu_usage, iterative_seeding_seeds, N2, N3, iterative_seeding_iterations, N4, N_lock, N_baseline_seeds, N_binning_seeds_new, N_binning_with_static_new, N_dynamic_with_static_seeds, N5, binning_with_defaults_sc_flag_depends_on
 import numpy
 import argparse
 import os
@@ -48,6 +48,7 @@ class JobType(Enum):
   binning_no_defaults = 'binning_no_defaults'
   binning_with_dp = 'binning_with_dp'
   binning_no_defaults_sc = 'binning_no_defaults_sc'
+  binning_with_defaults_sc = 'binning_with_defaults_sc'
   full = 'full'
   def __str__(self):
     return self.value
@@ -174,11 +175,12 @@ def run_dynamic_with_static_full(i, tuner_seed, grapher_seed):
   job_queue.put(([sys.executable, 'irace_dynamic_with_static.py', i, tuner_seed, grapher_seed], cv))
   cv.wait()
 
-def run_binning_with_defaults(i, tuner_seeds, grapher_seeds):
+def run_binning_with_defaults(i, tuner_seeds, grapher_seeds, finish_flags):
   for j in range(iterative_seeding_iterations[i]):
     cv = Event()
     job_queue.put(([sys.executable, 'irace_binning_with_defaults.py', str(i), str(j)], cv))
     cv.wait()
+    finish_flags[j].set()
 
 def run_binning_no_defaults(i, tuner_seeds, grapher_seeds):
   cvs = []
@@ -194,6 +196,11 @@ def run_binning_no_defaults_sc(i):
   job_queue.put(([sys.executable, 'irace_binning_no_defaults_sc.py', str(i)], cv))
   cv.wait()
 
+def run_binning_with_defaults_sc(i, no_sc_finish_flag):
+  no_sc_finish_flag.wait()
+  cv = Event()
+  job_queue.put(([sys.executable, 'irace_binning_with_defaults_sc.py', str(i)], cv))
+  cv.wait()
 
 def run_binning_with_dynamic(i):
   i = str(i)
@@ -277,8 +284,9 @@ def main(job_type: JobType):
     runs += [Thread(target=run_dynamic_with_static_full, args=(i + N_lock, N_dynamic_with_static_seeds[0][i], N_dynamic_with_static_seeds[0][i])) for i in range(N - N_lock)]
   else:
     [(i, rng.integers(1<<15, (1<<16)-1), rng.integers(1<<15, (1<<16)-1)) for i in range(N_lock)]
-  if job_type == JobType.binning_with_defaults or job_type == JobType.full:
-    runs += [Thread(target=run_binning_with_defaults, args=(i, iterative_seeding_seeds[i][0], iterative_seeding_seeds[i][1])) for i in range(N2)]
+  if job_type == JobType.binning_with_defaults or job_type == JobType.full or job_type == JobType.binning_with_defaults_sc:
+    binning_with_defaults_finish_flags = [[Event() for j in range(iterative_seeding_iterations[i])] for i in range(N2)]
+    runs += [Thread(target=run_binning_with_defaults, args=(i, iterative_seeding_seeds[i][0], iterative_seeding_seeds[i][1], binning_with_defaults_finish_flags[i])) for i in range(N2)]
   if job_type == JobType.binning_no_defaults or job_type == JobType.full:
     runs += [Thread(target=run_binning_no_defaults, args=(i, iterative_seeding_seeds[i][0], iterative_seeding_seeds[i][1])) for i in range(N2)]
   if job_type == JobType.binning_with_dynamic or job_type == JobType.full:
@@ -287,6 +295,8 @@ def main(job_type: JobType):
     runs += [Thread(target=run_binning_with_dp, args=(i,)) for i in range(N3)]
   if job_type == JobType.binning_no_defaults_sc or job_type == JobType.full:
     runs += [Thread(target=run_binning_no_defaults_sc, args=(i,)) for i in range(N4)]
+  if job_type == JobType.binning_with_defaults_sc or job_type == JobType.full:
+    runs += [Thread(target=run_binning_with_defaults_sc, args=(i, binning_with_defaults_finish_flags[binning_with_defaults_sc_flag_depends_on[i][0]][binning_with_defaults_sc_flag_depends_on[i][1]])) for i in range(N5)]
   for thread in runs:
     thread.start()
   for thread in runs:

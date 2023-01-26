@@ -14,15 +14,22 @@ EMAIL = os.getenv("EMAIL", "false").strip() == "true"
 
 if SMALL == "small":
   N = 3
+  N_lock = 3
 elif SMALL == "xsmall":
   N = 2
+  N_lock = 2
 else:
-  N = 8
+  N = 9
+  N_lock = 8
+
+# N_lock used because some seeds will shuffle if N is changed.
 
 if SMALL == "small" or SMALL == 'xsmall':
   M = 3
 else:
   M = 13
+
+# be careful when changing M because changing M will cause seeds to shuffle
 
 if SMALL == 'small':
   trials = 3
@@ -45,7 +52,31 @@ sizes = [
   1000,
   2000,
   5000,
+  3000,
 ]
+
+N_baseline_seeds = [
+  [63695],
+  [59703],
+  [57290],
+  [40239],
+] # Previous, I generated seeds in irace_load_distributor and soon realized it was a bad idea because it makes adding new configuration without messing up the seeds extremely difficult, but I don't want to touch old code because I can mess it up, so I just retrofit this way of defining seeds after n = 5000
+
+N_binning_seeds_new = [
+  [[58127, 60157, 60010, 49694, 64369, 55020, 37922, 40125, 35448, 43996, 49943, 58824, 40591]],
+  [[34890, 51902, 62805, 39459, 64714, 41456, 42789, 61557, 54121, 56972, 48582, 37467, 58445]],
+]
+
+N_binning_with_static_new = [
+  [[56049, 37079, 44282, 59018, 45498, 37209, 43477, 52292, 60889, 47679, 46931, 60369, 63193]],
+  [[55087, 65029, 56297, 63675, 41421, 33054, 64102, 60375, 58352, 39134, 45547, 61359, 64024]],
+]
+
+N_dynamic_with_static_seeds = [
+  [33014],
+  [35312],
+]
+
 
 sizes_reverse = {}
 for i, size in enumerate(sizes):
@@ -75,6 +106,7 @@ else:
     50,
     25,
     10,
+    10
   ] 
 
 default_lbds = [
@@ -85,7 +117,8 @@ default_lbds = [
   6.9282,
   6.7279,
   8.0286,
-  8.7281
+  8.7281,
+  8.7417,
 ]
 
 if SMALL=="small":
@@ -93,7 +126,7 @@ if SMALL=="small":
 elif SMALL=="xsmall":
   experiment_multiples_static = [1, 1]
 else: 
-  experiment_multiples_static = [100] * (N-1) + [experiment_multiples_dynamic[-1]]
+  experiment_multiples_static = [100, 100, 100, 100, 100, 100, 100, 10, 10]
 
 experiment_multiples_dynamic_bin = experiment_multiples_dynamic
 
@@ -140,7 +173,7 @@ def graph(json_path, png_path, dynamic_lbd_performance, dynamic_lbd_bin_performa
   figure.savefig(png_path, dpi=300)
 
 def get_cutoff(size):
-  if size == 5000 or size == 4000:
+  if size == 5000 or size == 4000 or size == 3000:
     return 250000
   return 99999999
 

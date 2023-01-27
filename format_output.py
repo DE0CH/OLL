@@ -267,7 +267,7 @@ for experiment_type in experiment_types:
     for i in range(N4):
       experiment_replace_name = {
         'binning_no_defaults_sc': 'tuned_dyn_bin_sc',
-        'binning_with_defaults_sc': 'tuned_dyn_cas_sc'
+        'binning_with_defaults_sc': 'tuned_dyn_cas_bin_sc'
       }[experiment_type]
       if experiment_type == 'binning_no_defaults_sc':
         size = binning_no_defaults_sc_n[i]

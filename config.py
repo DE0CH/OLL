@@ -188,7 +188,7 @@ def suppress_stderr():
             yield (err, )
   
 
-experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison', 'binning_comparison_with_static', 'dynamic_with_static', 'binning_with_defaults', 'binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle', 'binning_no_defaults', 'binning_with_dp_start', 'binning_with_dp_end', 'binning_with_dp_middle', 'binning_no_defaults_sc']
+experiment_types = ['dynamic_theory', 'dynamic', 'static', 'binning_comparison', 'binning_comparison_with_static', 'dynamic_with_static', 'binning_with_defaults', 'binning_with_dynamic_start', 'binning_with_dynamic_end', 'binning_with_dynamic_middle', 'binning_no_defaults', 'binning_with_dp_start', 'binning_with_dp_end', 'binning_with_dp_middle', 'binning_no_defaults_sc', 'binning_with_defaults_sc']
 
 def load_or_run_binning_comparison_validation(size, file_name, best_config, seeds, pool, logging=False):
     if not logging:
@@ -266,7 +266,7 @@ dp_policies = {
 N4 = 10
 if SMALL == 'small':
   binning_no_defaults_sc_n = [20] * 5 + [40] * 5
-  binning_no_defaults_sc_iteration = [5] * 5 + [6] * 5
+  binning_no_defaults_sc_iteration = [4] * 5 + [5] * 5
   binning_no_defaults_sc_multiples = [50] * 5 + [50] * 5
 else:
   binning_no_defaults_sc_n = [500] * 5 + [1000] * 5
@@ -277,6 +277,17 @@ binning_no_defaults_sc_seeds = [
   [39950, 59058, 42580, 36276, 44129, 42038, 59214, 47012, 64959, 33763],
   [65037, 50144, 47378, 41249, 41628, 63956, 54818, 40896, 59625, 39378]
 ]
+
+N5 = N4
+binning_with_defaults_sc_n = binning_no_defaults_sc_n
+binning_with_defaults_sc_iteration = binning_no_defaults_sc_iteration
+binning_with_defaults_sc_multiples = binning_no_defaults_sc_multiples
+binning_with_defaults_sc_seeds = [
+  [63695, 59703, 57290, 40239, 58127, 60157, 60010, 49694, 64369, 55020],
+  [37922, 40125, 35448, 43996, 49943, 58824, 40591, 34890, 51902, 62805]
+]
+binning_with_defaults_sc_iterative_size_reverse = [iterative_seeding_sizes.index(binning_no_defaults_sc_n[i]) for i in range(N5)] # This is currently a O(N^2) operation, but since N is so small it doesn't matter
+binning_with_defaults_sc_flag_depends_on = [(binning_with_defaults_sc_iterative_size_reverse[i], binning_with_defaults_sc_iteration[i]) for i in range(N5)]
 
 def get_iter_bins(size, bin_count):
   res = [0]

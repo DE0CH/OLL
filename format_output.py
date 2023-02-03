@@ -23,7 +23,7 @@
 }
 '''
 
-from config import N, sizes, experiment_types, descent_rates, get_cutoff, experiment_multiples_dynamic_bin, get_bins, experiment_multiples_dynamic, experiment_multiples_static, N2, iterative_seeding_sizes, iterative_seeding_multiples, iterative_seeding_iterations, iterative_seeding_seeds, get_iter_bins, binning_with_dynamic_sizes, binning_with_dynamic_seeds, binning_with_dynamic_iterations, get_dynamic_theory_lbd, BinningWithPolicyStrategy, N3, get_dp_lbd, binning_with_dp_sizes, binning_with_dp_iterations, binning_with_dp_seeds, N4, binning_no_defaults_sc_n, binning_no_defaults_sc_iteration, binning_no_defaults_sc_multiples, binning_no_defaults_sc_seeds
+from config import N, sizes, experiment_types, descent_rates, get_cutoff, experiment_multiples_dynamic_bin, get_bins, experiment_multiples_dynamic, experiment_multiples_static, N2, iterative_seeding_sizes, iterative_seeding_multiples, iterative_seeding_iterations, iterative_seeding_seeds, get_iter_bins, binning_with_dynamic_sizes, binning_with_dynamic_seeds, binning_with_dynamic_iterations, get_dynamic_theory_lbd, BinningWithPolicyStrategy, N3, get_dp_lbd, binning_with_dp_sizes, binning_with_dp_iterations, binning_with_dp_seeds, N4, binning_no_defaults_sc_n, binning_no_defaults_sc_iteration, binning_no_defaults_sc_multiples, binning_no_defaults_sc_seeds, binning_with_defaults_sc_n, binning_with_defaults_sc_iteration, binning_with_defaults_sc_multiples, binning_with_defaults_sc_seeds
 from decoder import IraceDecoder
 import json
 import os
@@ -263,16 +263,24 @@ for experiment_type in experiment_types:
         res = binning_wo_de_sc(experiment_type, experiment_replace_name, n, j, multiple, tuner_seed, grapher_seed)
         if res is not None:
           data.append(res)
-  elif experiment_type in ['binning_no_defaults_sc']:
+  elif experiment_type in ['binning_no_defaults_sc', 'binning_with_defaults_sc']:
     for i in range(N4):
       experiment_replace_name = {
-        'binning_no_defaults_sc': 'tuned_dyn_bin_sc'
+        'binning_no_defaults_sc': 'tuned_dyn_bin_sc',
+        'binning_with_defaults_sc': 'tuned_dyn_cas_bin_sc'
       }[experiment_type]
-      size = binning_no_defaults_sc_n[i]
-      j = binning_no_defaults_sc_iteration[i]
-      multiple = binning_no_defaults_sc_multiples[i]
-      tuner_seed = binning_no_defaults_sc_seeds[0][i]
-      grapher_seed = binning_no_defaults_sc_seeds[1][i]
+      if experiment_type == 'binning_no_defaults_sc':
+        size = binning_no_defaults_sc_n[i]
+        j = binning_no_defaults_sc_iteration[i]
+        multiple = binning_no_defaults_sc_multiples[i]
+        tuner_seed = binning_no_defaults_sc_seeds[0][i]
+        grapher_seed = binning_no_defaults_sc_seeds[1][i]
+      elif experiment_type == 'binning_with_defaults_sc':
+        size = binning_with_defaults_sc_n[i]
+        j = binning_with_defaults_sc_iteration[i]
+        multiple = binning_with_defaults_sc_multiples[i]
+        tuner_seed = binning_with_defaults_sc_seeds[0][i]
+        grapher_seed = binning_with_defaults_sc_seeds[1][i]
       res = binning_wo_de_sc(experiment_type, experiment_replace_name, size, j, multiple, tuner_seed, grapher_seed)
       if res is not None:
         data.append(res)

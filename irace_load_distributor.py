@@ -314,7 +314,7 @@ def main(job_type: JobType):
   if job_type == JobType.optimal_dynamic or job_type == JobType.full:
     runs += [Thread(target=run_optimal_dynamic, args=(i, )) for i in range(N6)]
   if job_type == JobType.optimal_dynamic_binned or job_type == JobType.full:
-    runs += [Thread(target=run_optimal_dynamic, args=(i, )) for i in range(N7)]
+    runs += [Thread(target=run_optimal_dynamic_binned, args=(i, )) for i in range(N7)]
 
   for thread in runs:
     thread.start()

@@ -271,7 +271,7 @@ if SMALL == 'small':
 else:
   N4 = 11
   binning_no_defaults_sc_n = [500] * 5 + [1000] * 5 + [500]
-  binning_no_defaults_sc_iteration = [5] * 5 + [6] * 5 + [9]
+  binning_no_defaults_sc_iteration = [5] * 5 + [6] * 5 + [8]
   binning_no_defaults_sc_multiples = [10] * 5 + [10] * 5 + [100]
 
 binning_no_defaults_sc_seeds = [

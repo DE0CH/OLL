@@ -279,7 +279,7 @@ binning_no_defaults_sc_seeds = [
   [65037, 50144, 47378, 41249, 41628, 63956, 54818, 40896, 59625, 39378, 59883]
 ]
 
-N5 = N4
+N5 = 10
 binning_with_defaults_sc_n = binning_no_defaults_sc_n
 binning_with_defaults_sc_iteration = binning_no_defaults_sc_iteration
 binning_with_defaults_sc_multiples = binning_no_defaults_sc_multiples

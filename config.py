@@ -269,14 +269,14 @@ if SMALL == 'small':
   binning_no_defaults_sc_iteration = [4] * 5 + [5] * 5
   binning_no_defaults_sc_multiples = [50] * 5 + [50] * 5
 else:
-  N4 = 11
-  binning_no_defaults_sc_n = [500] * 5 + [1000] * 5 + [500]
-  binning_no_defaults_sc_iteration = [5] * 5 + [6] * 5 + [8]
-  binning_no_defaults_sc_multiples = [10] * 5 + [10] * 5 + [100]
+  N4 = 12
+  binning_no_defaults_sc_n = [500] * 5 + [1000] * 5 + [500] + [1000]
+  binning_no_defaults_sc_iteration = [5] * 5 + [6] * 5 + [8] + [9]
+  binning_no_defaults_sc_multiples = [10] * 5 + [10] * 5 + [100] + [100]
 
 binning_no_defaults_sc_seeds = [
-  [39950, 59058, 42580, 36276, 44129, 42038, 59214, 47012, 64959, 33763, 61001],
-  [65037, 50144, 47378, 41249, 41628, 63956, 54818, 40896, 59625, 39378, 59883]
+  [39950, 59058, 42580, 36276, 44129, 42038, 59214, 47012, 64959, 33763, 61001, 40566],
+  [65037, 50144, 47378, 41249, 41628, 63956, 54818, 40896, 59625, 39378, 59883, 43781]
 ]
 
 N5 = 10

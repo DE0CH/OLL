@@ -269,7 +269,7 @@ if SMALL == 'small':
   binning_no_defaults_sc_iteration = [4] * 5 + [5] * 5
   binning_no_defaults_sc_multiples = [50] * 5 + [50] * 5
 else:
-  N4 = 12
+  N4 = 17
   binning_no_defaults_sc_n = [500] * 5 + [1000] * 5 + [500] + [1000] + [500] * 5
   binning_no_defaults_sc_iteration = [5] * 5 + [6] * 5 + [8] + [9] + [6] * 5
   binning_no_defaults_sc_multiples = [10] * 5 + [10] * 5 + [100] + [100] + [10] * 5

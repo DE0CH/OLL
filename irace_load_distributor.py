@@ -3,7 +3,7 @@ import subprocess
 import threading
 from threading import Thread
 import pathlib
-from config import graph, seed, N, M, min_cpu_usage, max_cpu_usage, iterative_seeding_seeds, N2, N3, iterative_seeding_iterations, N4, N_lock, N_baseline_seeds, N_binning_seeds_new, N_binning_with_static_new, N_dynamic_with_static_seeds, N5, binning_with_defaults_sc_flag_depends_on
+from config import graph, seed, N, M, min_cpu_usage, max_cpu_usage, iterative_seeding_seeds, N2, N3, iterative_seeding_iterations, N4, N_lock, N_baseline_seeds, N_binning_seeds_new, N_binning_with_static_new, N_dynamic_with_static_seeds, N5, binning_with_defaults_sc_flag_depends_on, N6, N7
 import numpy
 import argparse
 import os
@@ -49,6 +49,8 @@ class JobType(Enum):
   binning_with_dp = 'binning_with_dp'
   binning_no_defaults_sc = 'binning_no_defaults_sc'
   binning_with_defaults_sc = 'binning_with_defaults_sc'
+  optimal_dynamic = 'optimal_dynamic'
+  optimal_dynamic_binned = 'optimal_dynamic_binned'
   full = 'full'
   def __str__(self):
     return self.value
@@ -214,6 +216,18 @@ def run_binning_with_dp(i):
   job_queue.put(([sys.executable, 'eval_binning_with_dp.py', i], cv))
   cv.wait()
 
+def run_optimal_dynamic(i):
+  i = str(i)
+  cv = Event()
+  job_queue.put(([sys.executable, 'eval_optimal_dynamic.py', i], cv))
+  cv.wait()
+
+def run_optimal_dynamic_binned(i):
+  i = str(i)
+  cv = Event()
+  job_queue.put(([sys.executable, 'eval_optimal_dynamic_binned.py', i], cv))
+  cv.wait()
+
 def worker_adjustment():
   global target_worker_count, current_worker_count, worker_serial, worker_count_lock
   while True:
@@ -297,6 +311,11 @@ def main(job_type: JobType):
     runs += [Thread(target=run_binning_no_defaults_sc, args=(i,)) for i in range(N4)]
   if job_type == JobType.binning_with_defaults_sc or job_type == JobType.full:
     runs += [Thread(target=run_binning_with_defaults_sc, args=(i, binning_with_defaults_finish_flags[binning_with_defaults_sc_flag_depends_on[i][0]][binning_with_defaults_sc_flag_depends_on[i][1]])) for i in range(N5)]
+  if job_type == JobType.optimal_dynamic or job_type == JobType.full:
+    runs += [Thread(target=run_optimal_dynamic, args=(i, )) for i in range(N6)]
+  if job_type == JobType.optimal_dynamic_binned or job_type == JobType.full:
+    runs += [Thread(target=run_optimal_dynamic_binned, args=(i, )) for i in range(N7)]
+
   for thread in runs:
     thread.start()
   for thread in runs:

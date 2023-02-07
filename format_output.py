@@ -6,6 +6,7 @@
 # max_evals: the cutoff time of each OLL run during tuning. This is given as bound-max to irace.
 # tuning_budget: the tuning budget. This is given as max-experiments to irace.
 # tuning_time: the time used for tuning in second. 0 means no information is available.
+# sum_of_time (optional): the sum of the time (time reported by the target runner, not wall time or cpu time) of all the experiments.
 # evaluation_results: a list of results of each evaluation run of the best configuration found by irace.
 # best_configuration: this is a dictionary with two keys
 #     fx: a list of lower bound for each bin. The index counts from 0. For example, [0, 10] when n = 20 means the lbd are for 0 - 19 (inclusive) and 10 - 19 (inclusive).
@@ -30,6 +31,7 @@ import os
 import re
 import logging
 import argparse
+from utils import load_irace_rdata
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--nl', '--no-log', action='store_true')
@@ -80,6 +82,7 @@ def binning_wo_de_sc(experiment_type, experiment_replace_name, size, j, multiple
       'experiment': experiment,
       'max_evals': max_evals,
       'tuning_budget': tunning_budget,
+      'sum_of_time': load_irace_rdata(f'irace_output/irace_{experiment_type}_{n}_{multiple}_{j}_{tuner_seed}.Rdata'),
       'evaluation_results': evaluation_result,
 
       'best_configuration': {'fx': fx, 'lbd': lbd}

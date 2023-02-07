@@ -5,3 +5,4 @@ ConfigSpace
 maturin
 scipy 
 psutil
+rpy2

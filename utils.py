@@ -64,11 +64,11 @@ def load_irace_rdata(file_name):
     irace_results = rpy2conversion.rpy2py(ro.r['iraceResults'])
   times = []
   for log in irace_results['experimentLog']:
-    if log[3] == 0 or log[3] > log[4]:
+    if log[3] > log[4]:
       times.append(log[4])
     else:
       times.append(log[3])
-    if not np.isscalar(log[3]):
+    if not np.isscalar(log[3]) or log[3] == 0:
       raise ValueError('Unexpected result', 'DEBUG: ', file_name, log)
   return sum(times)
     

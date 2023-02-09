@@ -4,6 +4,19 @@ from config import trials
 import os
 import json
 import matplotlib.pyplot as plt
+import rpy2.robjects as ro
+import rpy2.rinterface as ri
+from rpy2.robjects.conversion import localconverter
+from rpy2.robjects import pandas2ri, numpy2ri
+from rpy2.rinterface_lib.sexp import NACharacterType
+ri.initr()
+
+rpy2conversion = ro.conversion.get_conversion()
+irace_converter =  ro.default_converter + numpy2ri.converter + pandas2ri.converter
+
+@irace_converter.rpy2py.register(NACharacterType)
+def convert(o):
+    return None
 
 def onell_eval(f, n, lbds, seed):
   if lbds:
@@ -44,4 +57,18 @@ def graph(n, output_dir, static_multiple, dynamic_multiple, static_lbd, dynamic_
   figure.subplots_adjust(left=0.25)
   ax.boxplot((static_lbd_performace, dynamic_lbd_performace, random_lbd_performace, random_lbd_same_performace, one_lbd_performace, dynamic_theory_performace, five_param_performace), labels=(f"Static Lambda (lbd={5})", "Dynamic Lambda", "Random Lambda (Lambda changes)", "Random Lambda (Lambda fixed)", "Lambda = 1", "Dynamic Theory", "Five Parameters"), vert=False)
   figure.savefig(png_path, dpi=300)
-  
+
+def load_irace_rdata(file_name):
+  ro.r(f'load({repr(file_name)})')
+  with localconverter(irace_converter):
+    irace_results = rpy2conversion.rpy2py(ro.r['iraceResults'])
+  times = []
+  for log in irace_results['experimentLog']:
+    if log[3] > log[4]:
+      times.append(log[4])
+    else:
+      times.append(log[3])
+    if not np.isscalar(log[3]) or log[3] == 0:
+      raise ValueError('Unexpected result', 'DEBUG: ', file_name, log)
+  return sum(times)
+    

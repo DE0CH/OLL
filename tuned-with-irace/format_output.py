@@ -6,6 +6,7 @@
 # max_evals: the cutoff time of each OLL run during tuning. This is given as bound-max to irace.
 # tuning_budget: the tuning budget. This is given as max-experiments to irace.
 # tuning_time: the time used for tuning in second. 0 means no information is available.
+# sum_of_time (optional): the sum of the time (time reported by the target runner, not wall time or cpu time) of all the experiments.
 # evaluation_results: a list of results of each evaluation run of the best configuration found by irace.
 # best_configuration: this is a dictionary with two keys
 #     fx: a list of lower bound for each bin. The index counts from 0. For example, [0, 10] when n = 20 means the lbd are for 0 - 19 (inclusive) and 10 - 19 (inclusive).
@@ -23,13 +24,14 @@
 }
 '''
 
-from config import N, sizes, experiment_types, descent_rates, get_cutoff, experiment_multiples_dynamic_bin, get_bins, experiment_multiples_dynamic, experiment_multiples_static, N2, iterative_seeding_sizes, iterative_seeding_multiples, iterative_seeding_iterations, iterative_seeding_seeds, get_iter_bins, binning_with_dynamic_sizes, binning_with_dynamic_seeds, binning_with_dynamic_iterations, get_dynamic_theory_lbd, BinningWithPolicyStrategy, N3, get_dp_lbd, binning_with_dp_sizes, binning_with_dp_iterations, binning_with_dp_seeds, N4, binning_no_defaults_sc_n, binning_no_defaults_sc_iteration, binning_no_defaults_sc_multiples, binning_no_defaults_sc_seeds, binning_with_defaults_sc_n, binning_with_defaults_sc_iteration, binning_with_defaults_sc_multiples, binning_with_defaults_sc_seeds, N6, N7, optimal_dynamic_seeds, optimal_dynamic_binned_seeds, optimal_dynamic_sizes, optimal_dynamic_binned_sizes, optimal_dynamic_lbds, optimal_dynamic_binned_lbds
+from config import N, sizes, experiment_types, descent_rates, get_cutoff, experiment_multiples_dynamic_bin, get_bins, experiment_multiples_dynamic, experiment_multiples_static, N2, iterative_seeding_sizes, iterative_seeding_multiples, iterative_seeding_iterations, iterative_seeding_seeds, get_iter_bins, binning_with_dynamic_sizes, binning_with_dynamic_seeds, binning_with_dynamic_iterations, get_dynamic_theory_lbd, BinningWithPolicyStrategy, N3, get_dp_lbd, binning_with_dp_sizes, binning_with_dp_iterations, binning_with_dp_seeds, N4, binning_no_defaults_sc_n, binning_no_defaults_sc_iteration, binning_no_defaults_sc_multiples, binning_no_defaults_sc_seeds, binning_with_defaults_sc_n, binning_with_defaults_sc_iteration, binning_with_defaults_sc_multiples, binning_with_defaults_sc_seeds, N5, N6, N7, optimal_dynamic_seeds, optimal_dynamic_binned_seeds, optimal_dynamic_sizes, optimal_dynamic_binned_sizes, optimal_dynamic_lbds, optimal_dynamic_binned_lbds
 from decoder import IraceDecoder
 import json
 import os
 import re
 import logging
 import argparse
+from utils import load_irace_rdata
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--nl', '--no-log', action='store_true')
@@ -80,6 +82,7 @@ def binning_wo_de_sc(experiment_type, experiment_replace_name, size, j, multiple
       'experiment': experiment,
       'max_evals': max_evals,
       'tuning_budget': tunning_budget,
+      'sum_of_time': load_irace_rdata(f'irace_output/irace_{experiment_type}_{n}_{multiple}_{j}_{tuner_seed}.Rdata'),
       'evaluation_results': evaluation_result,
 
       'best_configuration': {'fx': fx, 'lbd': lbd}
@@ -264,7 +267,13 @@ for experiment_type in experiment_types:
         if res is not None:
           data.append(res)
   elif experiment_type in ['binning_no_defaults_sc', 'binning_with_defaults_sc']:
-    for i in range(N4):
+    if experiment_type == 'binning_no_defaults_sc':
+      N = N4
+    elif experiment_type == 'binning_with_defaults_sc':
+      N = N5
+    else:
+      raise NotImplementedError()
+    for i in range(N):
       experiment_replace_name = {
         'binning_no_defaults_sc': 'tuned_dyn_bin_sc',
         'binning_with_defaults_sc': 'tuned_dyn_cas_bin_sc'

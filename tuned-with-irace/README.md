@@ -19,11 +19,15 @@ With all the dependencies installed, you should be able to reproduce the results
 python irace_load_distributor.py full
 ```
 
+You can also download our [computed data](https://oll-b3ae.s3.eu-west-2.amazonaws.com/irace_output.tar.gz).
+
 Wait for weeks, months, or even years. And then format the result into a nice json file with
 
 ```
 python format_output.py --nl
 ```
+
+You can also find the json file at `/plots/main_data.zip`. 
 
 I am sorry in advance for really messy code structure. It is the result of me trying to find the most lazy and hacky way to add some functionality or new configuration to the code while trying to not change the old code (lest it breaks), making improvements, and making sure that all the results can be reproduced with just one command. 
 

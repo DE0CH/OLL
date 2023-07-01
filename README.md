@@ -1,3 +1,7 @@
+# Github Link
+
+Since the associated paper has been reviewed, we will de-anonymize the repository. The repository is available at <https://github.com/de0ch/OLL>.
+
 # Tuning the One Lambda Lambda Algorithm with irace
 
 ## One Lambda Lambda implemented in Rust

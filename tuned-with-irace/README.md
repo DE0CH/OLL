@@ -13,7 +13,7 @@
 
 ## Reproduction
 
-With all the dependencies installed, you should be able to reproduce the results (with the caveat of [issue CENSORED](CENSORED)) by just running 
+With all the dependencies installed, you should be able to reproduce the results (with the caveat of [issue #18](https://github.com/DE0CH/OLL/issues/18)) by just running 
 
 ```bash 
 python irace_load_distributor.py full
@@ -33,4 +33,4 @@ I am sorry in advance for really messy code structure. It is the result of me tr
 
 ## Documentation
 
-There is not much documentation because most of the code is very ad-hoc not reusable (again, sorry for the poor code quality) and me thinking that not many people would bother to read it. If you do have any question, please feel free to open an in the [github repo](CENSORED), I will be more than happy to answer you.
+There is not much documentation because most of the code is very ad-hoc not reusable (again, sorry for the poor code quality) and me thinking that not many people would bother to read it. If you do have any question, please feel free to open an in the [github repo](https://github.com/DE0CH/OLL), I will be more than happy to answer you.

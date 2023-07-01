@@ -1,4 +1,4 @@
-# Format the output of the configurations with the format given by CENSORED
+# Format the output of the configurations with the format given by Nguyen
 # This outputs a list of dictionary in json format, for each item in the list, 
 # there are several keys. Below are the keys and their explanation.
 # n: the length of the array in OLL.
@@ -11,7 +11,7 @@
 # best_configuration: this is a dictionary with two keys
 #     fx: a list of lower bound for each bin. The index counts from 0. For example, [0, 10] when n = 20 means the lbd are for 0 - 19 (inclusive) and 10 - 19 (inclusive).
 #     lbd: the lbd for each bin.
-# evaluation_log: (optional field) undocumented. Ask Deyao @CENSORED for an explanation.
+# evaluation_log: (optional field) undocumented. Ask Deyao @DE0CH for an explanation.
 
 '''
 {       "n":1000,

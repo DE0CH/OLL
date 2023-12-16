@@ -19,9 +19,9 @@ With all the dependencies installed, you should be able to reproduce the results
 python irace_load_distributor.py full
 ```
 
-You can also download our [computed data](https://oll-b3ae.s3.eu-west-2.amazonaws.com/irace_output.tar.gz).
-
 Wait for weeks, months, or even years. And then format the result into a nice json file with
+
+You can also download our [computed data](https://oll-b3ae.s3.eu-west-2.amazonaws.com/irace_output.tar.gz).
 
 ```
 python format_output.py --nl

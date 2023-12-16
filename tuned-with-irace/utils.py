@@ -59,16 +59,17 @@ def graph(n, output_dir, static_multiple, dynamic_multiple, static_lbd, dynamic_
   figure.savefig(png_path, dpi=300)
 
 def load_irace_rdata(file_name):
-  ro.r(f'load({repr(file_name)})')
+# Sometimes b$time would say 0.01. Not sure what this is because the reported time from target is always an integer.
+# might be a way irace indicates that the run is not run or something.
+  ro.r(f'''
+load({repr(file_name)})
+a <- iraceResults['experimentLog'][[1]]
+b <- data.frame(a)
+res <- sum(pmin(as.integer(b$time), as.integer(b$bound)))
+  ''')
   with localconverter(irace_converter):
     irace_results = rpy2conversion.rpy2py(ro.r['iraceResults'])
-  times = []
   for log in irace_results['experimentLog']:
-    if log[3] > log[4]:
-      times.append(log[4])
-    else:
-      times.append(log[3])
-    if not np.isscalar(log[3]) or log[3] == 0:
+    if log[3] == 0:
       raise ValueError('Unexpected result', 'DEBUG: ', file_name, log)
-  return sum(times)
-    
+  return ro.r['res'][0]
